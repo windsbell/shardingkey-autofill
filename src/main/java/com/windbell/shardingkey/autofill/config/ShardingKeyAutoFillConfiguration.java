@@ -48,6 +48,8 @@ public class ShardingKeyAutoFillConfiguration {
             , MybatisPlusInterceptor mybatisPlusInterceptor, ShardingValueFinder shardingValueFinder
             , @Autowired(required = false) RedisConnectionFactory redisConnectionFactory
             , @Autowired(required = false) CacheManager cacheManager) {
+        // 设置拦截详细日志打印开关
+        CustomerLoggerFactory.init(shardingKeyAutoFillProperty.getLogEnabled());
         // 创建分片键值对内容加载的缓存
         Object[] args = {shardingValueFinder, redisConnectionFactory, cacheManager};
         ShardingValueCacheDecorator shardingValueCache = ShardingValueCacheFactory.newInstance(shardingKeyAutoFillProperty.getCache(), args);
@@ -65,8 +67,6 @@ public class ShardingKeyAutoFillConfiguration {
         ShardingStrategyHandler shardingStrategyHandler = StringUtils.isNotBlank(type)
                 ? ShardingStrategyHandlerFactory.getInstance(type.trim(), args) : ShardingStrategyHandlerFactory.getDefaultInstance();
         ShardingParserInterceptor shardingParserInterceptor = new ShardingParserInterceptor(shardingStrategyHandler);
-        mybatisPlusInterceptor.addInnerInterceptor(shardingParserInterceptor);
-        CustomerLoggerFactory.init(shardingKeyAutoFillProperty.getLogEnabled());
         log.info("Register sharding key autofill success！ [Log enabled: {}, Key-value cache type: {}, Strategy handler type: {}]"
                 , shardingKeyAutoFillProperty.getLogEnabled(), shardingValueCache.getCacheClass().getName()
                 , shardingStrategyHandler.getClass().getName());
