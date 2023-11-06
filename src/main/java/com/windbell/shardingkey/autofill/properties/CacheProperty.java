@@ -16,5 +16,4 @@ public class CacheProperty {
     // 缓存过期时间（秒）
     private Long expire;
 
-
 }

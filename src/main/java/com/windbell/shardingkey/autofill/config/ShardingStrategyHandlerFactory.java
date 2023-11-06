@@ -106,16 +106,16 @@ public class ShardingStrategyHandlerFactory {
                 TableShardingKeyStrategy tableShardingStrategy = new TableShardingKeyStrategy();
                 if (CollectionUtils.isNotEmpty(necessaryBusinessKeys)) {
                     tableShardingStrategy.setNecessaryBusinessKeys(necessaryBusinessKeys);
-                    String errorNotHasNecessaryBusinessKeys = String.format("条件未设置必须的业务字段:%s！", necessaryBusinessKeys);
+                    String errorNotHasNecessaryBusinessKeys = String.format("condition must contain all necessary field:%s！", necessaryBusinessKeys);
                     tableShardingStrategy.setErrorNotHasNecessaryBusinessKeys(errorNotHasNecessaryBusinessKeys);
                 }
                 if (CollectionUtils.isNotEmpty(anyOneBusinessKeys)) {
                     tableShardingStrategy.setAnyOneBusinessKeys(anyOneBusinessKeys);
-                    String errorNotHasAnyOneBusinessKeys = String.format("条件未设置任意业务字段之一:%s！", anyOneBusinessKeys);
+                    String errorNotHasAnyOneBusinessKeys = String.format("condition should contain any one required field:%s！", anyOneBusinessKeys);
                     tableShardingStrategy.setErrorNotHasAnyOneBusinessKeys(errorNotHasAnyOneBusinessKeys);
                 }
-                String errorNotHaseDatabaseShardKey = String.format("条件未设置分片键:%s！", strategy.getDatabaseShardKey());
-                String errorNotHaseTableShardKey = String.format("条件未设置分片建:%s！", strategy.getTableShardKey());
+                String errorNotHaseDatabaseShardKey = String.format("condition must contain database sharding key field:%s！", strategy.getDatabaseShardKey());
+                String errorNotHaseTableShardKey = String.format("condition must contain table sharding key field:%s！", strategy.getTableShardKey());
                 tableShardingStrategy.setTable(suitableTable);
                 tableShardingStrategy.setTableShardKey(tableShardKey);
                 tableShardingStrategy.setDatabaseShardKey(databaseShardKey);

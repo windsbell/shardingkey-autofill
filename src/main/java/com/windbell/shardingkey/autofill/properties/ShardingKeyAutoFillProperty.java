@@ -14,13 +14,12 @@ import java.util.List;
 @ConfigurationProperties(prefix = "spring.shardingkey-autofill")
 public class ShardingKeyAutoFillProperty {
 
-    private CacheProperty cache; // 缓存配置
+    private CacheProperty cache; // 缓存配置 [default（未填写则是默认本地缓存）、redis（redis缓存）、spring（spring cache缓存）]
 
-    private String type; // 自动填充实现类
+    private String type; // 策略类型 [未填写则是默认策略DefaultShardingStrategyHandler,也可以继承AbstractShardingStrategyHandler实现自定义策略配置到此处]
 
-    private Boolean logEnabled = true; // 启用日志开关
+    private Boolean logEnabled = true; //  启用拦截日志开关[建议线上环境关闭、测试环境开启]
 
-    private List<TableShardingKeyProperty> strategies; // 分片键配置策略集
-
+    private List<TableShardingKeyProperty> strategies; //  策略集 [分片键都相同的一组数据表作为一个策略集进行配置]
 
 }

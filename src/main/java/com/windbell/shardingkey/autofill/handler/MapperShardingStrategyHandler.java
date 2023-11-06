@@ -58,11 +58,11 @@ public class MapperShardingStrategyHandler extends AbstractShardingStrategyHandl
             boolean matchTableShardKey = this.fullMatch(where, tableShardingStrategy.getTableShardKey());
             boolean matchDatabaseShardKey = this.fullMatch(where, tableShardingStrategy.getDatabaseShardKey());
             if (!matchTableShardKey && !matchDatabaseShardKey) {
-                log.warn("[{} mapper] missing tableShardKey and databaseShardKey in sql: {}", sqlCommand, statement);
+                log.warn("[{} mapper] missing table sharding key field and database sharding key field in sql: {}", sqlCommand, statement);
             } else if (!matchTableShardKey) {
-                log.warn("[{} mapper] missing tableShardKey in sql: {}", sqlCommand, statement);
+                log.warn("[{} mapper] missing table sharding key field in sql: {}", sqlCommand, statement);
             } else if (!matchDatabaseShardKey) {
-                log.warn("[{} mapper] missing databaseShardKey in sql: {}", sqlCommand, statement);
+                log.warn("[{} mapper] missing database sharding key field in sql: {}", sqlCommand, statement);
             }
             Assert.isTrue(matchTableShardKey, tableShardingStrategy.getErrorNotHaseTableShardKey());
             Assert.isTrue(matchDatabaseShardKey, tableShardingStrategy.getErrorNotHaseDatabaseShardKey());

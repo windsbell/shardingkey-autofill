@@ -19,5 +19,4 @@ public class TableShardingKeyProperty extends ShardingKeyStrategy {
 
     private List<String> anyOneBusinessKeys; // 任意业务键列表[条件中出现以下任意一个业务键即可满足可查出分库分表等键值对]
 
-
 }
