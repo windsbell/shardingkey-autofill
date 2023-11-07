@@ -6,7 +6,6 @@ import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
-import com.windbell.shardingkey.autofill.config.TableShardingStrategyHelper;
 import com.windbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windbell.shardingkey.autofill.logger.CustomerLoggerFactory;
 import com.windbell.shardingkey.autofill.strategy.*;
@@ -40,21 +39,21 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
      * parameterObject: 替换参数对象
      */
     @Override
-    public void parse(Statement statement, Object parameterObject) {
+    public void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy) {
         AbstractWrapper<?, ?, ?> wrapper = super.tryAndGetWrapper(parameterObject);
         if (wrapper != null) {
             if (statement instanceof Select) {
                 Select select = (Select) statement;
                 if (select.getSelectBody() instanceof PlainSelect) {
                     PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                    this.parseWrapper(SQL_COMMAND_SELECT, statement, (Parenthesis) plainSelect.getWhere(), wrapper);
+                    this.parseWrapper(SQL_COMMAND_SELECT, statement, (Parenthesis) plainSelect.getWhere(), wrapper, tableShardingKeyStrategy);
                 }
             } else if (statement instanceof Update) {
                 Update update = (Update) statement;
-                this.parseWrapper(SQL_COMMAND_UPDATE, statement, (Parenthesis) update.getWhere(), wrapper);
+                this.parseWrapper(SQL_COMMAND_UPDATE, statement, (Parenthesis) update.getWhere(), wrapper, tableShardingKeyStrategy);
             } else if (statement instanceof Delete) {
                 Delete delete = (Delete) statement;
-                this.parseWrapper(SQL_COMMAND_DELETE, statement, (Parenthesis) delete.getWhere(), wrapper);
+                this.parseWrapper(SQL_COMMAND_DELETE, statement, (Parenthesis) delete.getWhere(), wrapper, tableShardingKeyStrategy);
             }
         }
     }
@@ -80,23 +79,22 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
         return businessStrategies;
     }
 
-    private void parseWrapper(String sqlCommand, Statement statement, Parenthesis where, AbstractWrapper<?, ?, ?> wrapper) {
-        TableShardingKeyStrategy tableShardingStrategy = TableShardingStrategyHelper.find(statement);
-        if (tableShardingStrategy != null) {
+    private void parseWrapper(String sqlCommand, Statement statement, Parenthesis where, AbstractWrapper<?, ?, ?> wrapper, TableShardingKeyStrategy tableShardingKeyStrategy) {
+        if (tableShardingKeyStrategy != null) {
             // 对于wrapper操作，自动填充分片键和值
             List<EqualsTo> appendShardKeyValList = new ArrayList<>();
             String sqlSegment = wrapper.getExpression().getSqlSegment();
             // 只有等于、或者IN条件满足匹配到对应分片键
-            boolean hasTableShardKey = sqlSegment.contains(tableShardingStrategy.getTableShardKey() + StringPool.SPACE + SqlKeyword.EQ.getSqlSegment())
-                    || sqlSegment.contains(tableShardingStrategy.getTableShardKey() + StringPool.SPACE + SqlKeyword.IN.getSqlSegment());
-            boolean hasDataBaseShardKey = sqlSegment.contains(tableShardingStrategy.getDatabaseShardKey() + StringPool.SPACE + SqlKeyword.EQ.getSqlSegment())
-                    || sqlSegment.contains(tableShardingStrategy.getDatabaseShardKey() + StringPool.SPACE + SqlKeyword.IN.getSqlSegment());
+            boolean hasTableShardKey = sqlSegment.contains(tableShardingKeyStrategy.getTableShardKey() + StringPool.SPACE + SqlKeyword.EQ.getSqlSegment())
+                    || sqlSegment.contains(tableShardingKeyStrategy.getTableShardKey() + StringPool.SPACE + SqlKeyword.IN.getSqlSegment());
+            boolean hasDataBaseShardKey = sqlSegment.contains(tableShardingKeyStrategy.getDatabaseShardKey() + StringPool.SPACE + SqlKeyword.EQ.getSqlSegment())
+                    || sqlSegment.contains(tableShardingKeyStrategy.getDatabaseShardKey() + StringPool.SPACE + SqlKeyword.IN.getSqlSegment());
             if (!hasTableShardKey || !hasDataBaseShardKey) {
-                BusinessKeyStrategy businessKeyStrategy = this.selectBusinessKeyStrategy(statement, sqlSegment, wrapper, tableShardingStrategy);
+                BusinessKeyStrategy businessKeyStrategy = this.selectBusinessKeyStrategy(statement, sqlSegment, wrapper, tableShardingKeyStrategy);
                 if (!hasTableShardKey) {
-                    ShardingValueStrategy shardingKeyValueStrategy = super.findShardingKeyValueStrategy(businessKeyStrategy);
+                    ShardingValueStrategy shardingKeyValueStrategy = super.findShardingKeyValueStrategy(businessKeyStrategy, tableShardingKeyStrategy);
                     if (shardingKeyValueStrategy != null && StringUtils.isNotBlank(shardingKeyValueStrategy.getTableShardValue())) {
-                        EqualsTo equalsTo = combineEqualsTo(tableShardingStrategy.getTableShardKey()
+                        EqualsTo equalsTo = combineEqualsTo(tableShardingKeyStrategy.getTableShardKey()
                                 , shardingKeyValueStrategy.getTableShardValue());
                         appendShardKeyValList.add(equalsTo);
                     } else {
@@ -105,9 +103,9 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
                 }
 
                 if (!hasDataBaseShardKey) {
-                    ShardingValueStrategy shardingKeyValueStrategy = super.findShardingKeyValueStrategy(businessKeyStrategy);
+                    ShardingValueStrategy shardingKeyValueStrategy = super.findShardingKeyValueStrategy(businessKeyStrategy, tableShardingKeyStrategy);
                     if (shardingKeyValueStrategy != null && StringUtils.isNotBlank(shardingKeyValueStrategy.getDatabaseShardValue())) {
-                        EqualsTo equalsTo = combineEqualsTo(tableShardingStrategy.getDatabaseShardKey()
+                        EqualsTo equalsTo = combineEqualsTo(tableShardingKeyStrategy.getDatabaseShardKey()
                                 , shardingKeyValueStrategy.getDatabaseShardValue());
                         appendShardKeyValList.add(equalsTo);
                     } else {

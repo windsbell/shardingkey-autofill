@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.windbell.shardingkey.autofill.finder.cache.ShardingValueCacheFactory;
 import com.windbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
 import com.windbell.shardingkey.autofill.strategy.ShardingValueStrategy;
+import com.windbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import net.sf.jsqlparser.statement.Statement;
 import org.apache.ibatis.binding.MapperMethod;
 import org.springframework.lang.Nullable;
@@ -28,8 +29,9 @@ public abstract class AbstractShardingStrategyHandler extends ShardingValueCache
      * 对应策略要执行的解析动作
      * statement:预处理语句
      * parameterObject: 替换参数对象
+     * tableShardingKeyStrategy: 表分片键映射策略
      */
-    public abstract void parse(Statement statement, Object parameterObject);
+    public abstract void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy);
 
     /**
      * 尝试获取到Wrapper,若拿不到则是mapper
@@ -52,8 +54,8 @@ public abstract class AbstractShardingStrategyHandler extends ShardingValueCache
     /**
      * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，再置入cache，后面同样语句类型直接从cache中拿取
      */
-    protected ShardingValueStrategy findShardingKeyValueStrategy(BusinessKeyStrategy businessKeyStrategy) {
-        return ShardingValueCacheFactory.getInstance().get(businessKeyStrategy);
+    protected ShardingValueStrategy findShardingKeyValueStrategy(BusinessKeyStrategy businessKeyStrategy, TableShardingKeyStrategy tableShardingKeyStrategy) {
+        return ShardingValueCacheFactory.getInstance().get(businessKeyStrategy, tableShardingKeyStrategy.getShardingValueFinder());
     }
 
 

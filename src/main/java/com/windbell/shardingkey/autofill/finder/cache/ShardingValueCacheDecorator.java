@@ -45,11 +45,6 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
      */
     private static final Long waitingTimeWhilePutting = 100L;
 
-    /**
-     * 分片键值对查找器
-     */
-    private final ShardingValueFinder finder;
-
     private static final String DATA_BASE_SHARD_KEY = "databaseShardKey:";
 
     private static final String TABLE_SHARD_KEY = "tableShardKey:";
@@ -58,10 +53,9 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
 
     private static final String VALUE_SEPARATOR = ":";
 
-    public ShardingValueCacheDecorator(ShardingValueCache shardingValueCache, Class<?> cacheClass, ShardingValueFinder finder) {
+    public ShardingValueCacheDecorator(ShardingValueCache shardingValueCache, Class<?> cacheClass) {
         this.cache = shardingValueCache;
         this.cacheClass = cacheClass;
-        this.finder = finder;
     }
 
     @Override
@@ -82,7 +76,7 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
     /**
      * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，再置入cache，后面同样语句类型直接从cache中拿取
      */
-    public ShardingValueStrategy get(BusinessKeyStrategy businessKeyStrategy) {
+    public ShardingValueStrategy get(BusinessKeyStrategy businessKeyStrategy, ShardingValueFinder shardingValueFinder) {
         String shardingValueCacheKey = getShardingValueCacheKey(businessKeyStrategy);
         waitWhilePutting(shardingValueCacheKey);
         // 查询缓存
@@ -92,19 +86,19 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
                     , shardingValueCacheKey, shardingValueStrategy);
             return shardingValueStrategy;
         }
-        shardingValueStrategy = put(businessKeyStrategy, shardingValueCacheKey);
+        shardingValueStrategy = put(businessKeyStrategy, shardingValueCacheKey, shardingValueFinder);
         return shardingValueStrategy;
     }
 
     /**
      * 私有方法：get时没有则调取查找器，进行put
      */
-    private ShardingValueStrategy put(BusinessKeyStrategy businessKeyStrategy, String shardingValueCacheKey) {
+    private ShardingValueStrategy put(BusinessKeyStrategy businessKeyStrategy, String shardingValueCacheKey, ShardingValueFinder shardingValueFinder) {
         ShardingValueStrategy shardingValueStrategy;
         try {
             synchronized (lockMap.computeIfAbsent(shardingValueCacheKey, k -> new Object())) {
                 // 未命中则使用分片键值对查找器执行查找（查找器通过SPI用户程序自行定制实现）
-                shardingValueStrategy = finder.apply(businessKeyStrategy);
+                shardingValueStrategy = shardingValueFinder.apply(businessKeyStrategy);
                 // 查找器匹配到任意一条分片键时方可置入cache中
                 if (shardingValueStrategy != null &&
                         (StringUtils.isNotBlank(shardingValueStrategy.getTableShardValue()) ||
@@ -130,7 +124,7 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
      */
     public void remove(BusinessKeyStrategy businessKeyStrategy) {
         String shardingValueCacheKey = getShardingValueCacheKey(businessKeyStrategy);
-        ShardingValueStrategy shardingValueStrategy = this.get(businessKeyStrategy);
+        ShardingValueStrategy shardingValueStrategy = this.get(shardingValueCacheKey);
         // 查询缓存
         if (shardingValueStrategy != null) {
             try {

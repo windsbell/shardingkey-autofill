@@ -2,6 +2,8 @@ package com.windbell.shardingkey.autofill.config;
 
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.windbell.shardingkey.autofill.finder.ShardingValueFinder;
+import com.windbell.shardingkey.autofill.finder.ShardingValueFinderFactory;
 import com.windbell.shardingkey.autofill.handler.AbstractShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.handler.ShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty;
@@ -10,10 +12,7 @@ import com.windbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import com.windbell.shardingkey.autofill.utils.PackageUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -31,8 +30,11 @@ public class ShardingStrategyHandlerFactory {
 
     private final static Map<String, AbstractShardingStrategyHandler> SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE = new ConcurrentHashMap<>();
 
-    public static AbstractShardingStrategyHandler getDefaultInstance() {
-        return SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.get(DEFAULT_SHARDING_STRATEGY_HANDLER_TYPE);
+    static {
+        String factoryPackageName = ShardingStrategyHandlerFactory.class.getPackage().getName();
+        SHARDING_STRATEGY_HANDLER_PACKAGE_NAME = factoryPackageName.substring(0, factoryPackageName.lastIndexOf('.')) + ".handler";
+        DEFAULT_SHARDING_STRATEGY_HANDLER_TYPE = SHARDING_STRATEGY_HANDLER_PACKAGE_NAME + ".DefaultShardingStrategyHandler";
+        initInstances();
     }
 
     public static List<AbstractShardingStrategyHandler> getAllInstances() {
@@ -41,61 +43,54 @@ public class ShardingStrategyHandlerFactory {
         return allInstances;
     }
 
-    static AbstractShardingStrategyHandler getInstance(String type, Object[] args) {
-        AbstractShardingStrategyHandler shardingStrategyHandler = SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.get(type);
+    private static AbstractShardingStrategyHandler getDefaultInstance() {
+        return SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.get(DEFAULT_SHARDING_STRATEGY_HANDLER_TYPE);
+    }
+
+    static ShardingStrategyHandler getInstance() {
+        ShardingStrategyHandler shardingStrategyHandler = getFromServices();
         if (shardingStrategyHandler == null) {
-            try {
-                Class<?> clazz = Class.forName(type);
-                if (!(AbstractShardingStrategyHandler.class.isAssignableFrom(clazz))) {
-                    throw new ClassCastException(String.format("自动填充分片键策略：%s 必须继承自AbstractShardingStrategyHandler！", type));
-                }
-                shardingStrategyHandler = reflect(args, clazz);
-                SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.put(type, shardingStrategyHandler);
-            } catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException |
-                     InvocationTargetException | NoSuchFieldException e) {
-                throw new RuntimeException(e);
-            }
+            return ShardingStrategyHandlerFactory.getDefaultInstance();
+        }
+        if (!(AbstractShardingStrategyHandler.class.isAssignableFrom(shardingStrategyHandler.getClass()))) {
+            throw new ClassCastException(String.format("自定义分片键策略：%s 必须继承自AbstractShardingStrategyHandler！", shardingStrategyHandler.getClass()));
         }
         return shardingStrategyHandler;
     }
 
-    static {
-        String factoryPackageName = ShardingStrategyHandlerFactory.class.getPackage().getName();
-        SHARDING_STRATEGY_HANDLER_PACKAGE_NAME = factoryPackageName.substring(0, factoryPackageName.lastIndexOf('.')) + ".handler";
-        DEFAULT_SHARDING_STRATEGY_HANDLER_TYPE = SHARDING_STRATEGY_HANDLER_PACKAGE_NAME + ".DefaultShardingStrategyHandler";
+    private static ShardingStrategyHandler getFromServices() {
+        // 工厂返回从项目中取的SPI第一条实现者
+        ServiceLoader<ShardingStrategyHandler> services = ServiceLoader.load(ShardingStrategyHandler.class);
+        Iterator<ShardingStrategyHandler> iterator = services.iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        return null;
     }
 
-    static void init(Object[] args) {
+    private static void initInstances() {
         // 默认加载handler包下所有的实现ShardingStrategyHandler（自动填充分片键策略接口）的策略处理类收集到工厂
         List<Class<?>> classList = PackageUtil.getClassList(SHARDING_STRATEGY_HANDLER_PACKAGE_NAME, false
                 , clazz -> clazz.getSuperclass() != null && ShardingStrategyHandler.class.isAssignableFrom(clazz)
                         && AbstractShardingStrategyHandler.class.isAssignableFrom(clazz.getSuperclass()));
         for (Class<?> clazz : classList) {
             try {
-                AbstractShardingStrategyHandler shardingStrategyHandler = reflect(args, clazz);
+                AbstractShardingStrategyHandler shardingStrategyHandler = (AbstractShardingStrategyHandler) clazz.newInstance();
                 SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.putIfAbsent(shardingStrategyHandler.getClass().getName(), shardingStrategyHandler);
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
-                     NoSuchMethodException | NoSuchFieldException e) {
+            } catch (InstantiationException | IllegalAccessException e) {
                 throw new RuntimeException(e);
             }
         }
     }
 
-    /**
-     * 初始化时反射注入属性
-     */
-    static AbstractShardingStrategyHandler reflect(Object[] args, Class<?> clazz)
-            throws InstantiationException, IllegalAccessException, NoSuchMethodException, InvocationTargetException, NoSuchFieldException {
-        init((ShardingKeyAutoFillProperty) args[0]);
-        return (AbstractShardingStrategyHandler) clazz.newInstance();
-    }
-
-    private static void init(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty) {
+    static void registerStrategyHelper(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty) {
         checkShardProperties(shardingKeyAutoFillProperty);
         List<TableShardingKeyProperty> strategies = shardingKeyAutoFillProperty.getStrategies();
         for (TableShardingKeyProperty strategy : strategies) {
             String tableShardKey = strategy.getTableShardKey();
             String databaseShardKey = strategy.getDatabaseShardKey();
+            String finderClassName = strategy.getFinderClassName();
+            ShardingValueFinder shardingValueFinder = ShardingValueFinderFactory.getInstance(finderClassName);
             // 保证列表不能出现重复内容
             List<String> necessaryBusinessKeys = CollectionUtils.isEmpty(strategy.getNecessaryBusinessKeys())
                     ? strategy.getNecessaryBusinessKeys() : strategy.getNecessaryBusinessKeys().stream().distinct().collect(Collectors.toList());
@@ -119,6 +114,7 @@ public class ShardingStrategyHandlerFactory {
                 tableShardingStrategy.setTable(suitableTable);
                 tableShardingStrategy.setTableShardKey(tableShardKey);
                 tableShardingStrategy.setDatabaseShardKey(databaseShardKey);
+                tableShardingStrategy.setShardingValueFinder(shardingValueFinder);
                 tableShardingStrategy.setErrorNotHaseTableShardKey(errorNotHaseTableShardKey);
                 tableShardingStrategy.setErrorNotHaseDatabaseShardKey(errorNotHaseDatabaseShardKey);
                 TableShardingStrategyHelper.put(suitableTable, tableShardingStrategy);
@@ -129,13 +125,14 @@ public class ShardingStrategyHandlerFactory {
 
     private static void checkShardProperties(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty) {
         List<TableShardingKeyProperty> strategies = shardingKeyAutoFillProperty.getStrategies();
-        Assert.notEmpty(strategies, "未配置策略集[spring.shardingkey-autofill.strategies]！");
+        Assert.notEmpty(strategies, "未配置策略集[spring.shardingkeyAutofill.strategies]！");
         for (TableShardingKeyProperty table : strategies) {
-            Assert.notEmpty(table.getSuitableTables(), "未配置适配的表集合[spring.shardingkey-autofill.strategies.suitableTables]！");
-            Assert.notEmpty(table.getTableShardKey(), "未配置分表键[spring.shardingkey-autofill.strategies.tableShardKey]！");
-            Assert.notEmpty(table.getDatabaseShardKey(), "未配置分库键[spring.shardingkey-autofill.strategies.databaseShardKey]！");
+            Assert.notEmpty(table.getSuitableTables(), "未配置适配的表集合[spring.shardingkeyAutofill.strategies.suitableTables]！");
+            Assert.notEmpty(table.getTableShardKey(), "未配置分表键[spring.shardingkeyAutofill.strategies.tableShardKey]！");
+            Assert.notEmpty(table.getDatabaseShardKey(), "未配置分库键[spring.shardingkeyAutofill.strategies.databaseShardKey]！");
+            Assert.notEmpty(table.getFinderClassName(), "未配置分库键查找器Class[spring.shardingkeyAutofill.strategies.finderClassName]！");
             Assert.isFalse(CollectionUtils.isEmpty(table.getNecessaryBusinessKeys()) && CollectionUtils.isEmpty(table.getAnyOneBusinessKeys())
-                    , "请配置关键业务字段列表或者任务业务字段列表之一[spring.shardingkey-autofill.strategies.necessaryBusinessKeys(or anyOneBusinessKeys)]！");
+                    , "请配置关键业务字段列表或者任务业务字段列表之一[spring.shardingkeyAutofill.strategies.necessaryBusinessKeys(or anyOneBusinessKeys)]！");
         }
     }
 

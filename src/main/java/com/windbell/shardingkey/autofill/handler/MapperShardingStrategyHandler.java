@@ -30,9 +30,10 @@ public class MapperShardingStrategyHandler extends AbstractShardingStrategyHandl
     /**
      * statement:预处理语句
      * parameterObject: 替换参数对象
+     * tableShardingKeyStrategy: 表分片键映射策略
      */
     @Override
-    public void parse(Statement statement, Object parameterObject) {
+    public void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy) {
         AbstractWrapper<?, ?, ?> wrapper = super.tryAndGetWrapper(parameterObject);
         if (wrapper == null) {
             if (statement instanceof Select) {

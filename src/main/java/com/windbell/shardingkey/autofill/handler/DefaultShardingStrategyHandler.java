@@ -1,6 +1,7 @@
 package com.windbell.shardingkey.autofill.handler;
 
 import com.windbell.shardingkey.autofill.config.ShardingStrategyHandlerFactory;
+import com.windbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import net.sf.jsqlparser.statement.Statement;
 
 /**
@@ -15,9 +16,9 @@ public class DefaultShardingStrategyHandler extends AbstractShardingStrategyHand
      * 默认分片键策略【wrapper分片键策略+mapper分片键策略一起】
      */
     @Override
-    public void parse(Statement statement, Object parameterObject) {
+    public void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy) {
         ShardingStrategyHandlerFactory.getAllInstances()
-                .forEach(shardingStrategyHandler -> shardingStrategyHandler.parse(statement, parameterObject));
+                .forEach(shardingStrategyHandler -> shardingStrategyHandler.parse(statement, parameterObject, tableShardingKeyStrategy));
     }
 
 

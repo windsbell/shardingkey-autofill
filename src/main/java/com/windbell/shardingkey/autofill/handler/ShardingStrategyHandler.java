@@ -1,5 +1,6 @@
 package com.windbell.shardingkey.autofill.handler;
 
+import com.windbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import net.sf.jsqlparser.statement.Statement;
 
 /**
@@ -12,7 +13,8 @@ public interface ShardingStrategyHandler {
     /**
      * statement: 预处理语句
      * parameterObject: 替换参数对象
+     * tableShardingKeyStrategy: 表分片键映射策略
      */
-    void parse(Statement statement, Object parameterObject);
+    void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy);
 
 }

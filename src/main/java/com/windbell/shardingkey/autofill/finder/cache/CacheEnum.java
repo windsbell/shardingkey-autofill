@@ -1,9 +1,9 @@
 package com.windbell.shardingkey.autofill.finder.cache;
 
 
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.Getter;
 import org.springframework.util.Assert;
-import org.springframework.util.StringUtils;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -35,7 +35,7 @@ public enum CacheEnum {
 
 
     public static CacheEnum getCache(String type) {
-        if (StringUtils.isEmpty(type)) return CacheEnum.DEFAULT;
+        if (StringUtils.isBlank(type)) return CacheEnum.DEFAULT;
         Optional<CacheEnum> optional = Arrays.stream(CacheEnum.values()).filter(cacheEnum -> type.equals(cacheEnum.getType())).findFirst();
         Assert.isTrue(optional.isPresent(), String.format("暂不支持缓存类型：%s，请从列表%s中选择一个配置！"
                 , type, Arrays.stream(CacheEnum.values()).map(CacheEnum::getType).collect(Collectors.toList())));

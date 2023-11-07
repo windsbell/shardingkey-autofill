@@ -1,11 +1,12 @@
 package com.windbell.shardingkey.autofill.finder.cache;
 
 
-import com.windbell.shardingkey.autofill.finder.ShardingValueFinder;
 import com.windbell.shardingkey.autofill.properties.CacheProperty;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.util.Assert;
+
+import java.util.Objects;
 
 /**
  * 分片键值对内容缓存实例工厂： 目前提供可支持:本地缓存（默认）、redis、spring cache
@@ -19,13 +20,18 @@ public class ShardingValueCacheFactory {
     // 分片键值对缓存装饰器
     private static ShardingValueCacheDecorator shardingValueCacheDecorator = null;
 
-    public static ShardingValueCacheDecorator newInstance(CacheProperty cacheProperty, Object[] args) {
-        long expire = cacheProperty != null && cacheProperty.getExpire() != null ? cacheProperty.getExpire() : DEFAULT_EXPIRE;
-        String type = cacheProperty != null && cacheProperty.getType() != null ? cacheProperty.getType() : null;
-        CacheEnum cacheEnum = CacheEnum.getCache(type);
+    public static ShardingValueCacheDecorator newInstance(Object[] args) {
+        Object cachePropertyObj = args[0];
+        long expire = DEFAULT_EXPIRE;
+        String type = null;
+        if (cachePropertyObj != null) {
+            CacheProperty cacheProperty = (CacheProperty) cachePropertyObj;
+            if (Objects.nonNull(cacheProperty.getExpire())) expire = cacheProperty.getExpire();
+            if (Objects.nonNull(cacheProperty.getType())) type = cacheProperty.getType();
+        }
         ShardingValueCache shardingValueCache;
         Class<?> cacheClass;
-        switch (cacheEnum) {
+        switch (CacheEnum.getCache(type)) {
             case REDIS:
                 RedisConnectionFactory redisConnectionFactory = (RedisConnectionFactory) args[1];
                 Assert.notNull(redisConnectionFactory, "未检查到应用装配redis,请配置后进行使用！");
@@ -46,8 +52,7 @@ public class ShardingValueCacheFactory {
                 shardingValueCache = new CustomerCacheDecorator(defaultShardingValueCache, expire);
         }
         // 创建分片键值装饰器
-        ShardingValueFinder shardingValueFinder = (ShardingValueFinder) args[0];
-        shardingValueCacheDecorator = new ShardingValueCacheDecorator(shardingValueCache, cacheClass, shardingValueFinder);
+        shardingValueCacheDecorator = new ShardingValueCacheDecorator(shardingValueCache, cacheClass);
         return shardingValueCacheDecorator;
     }
 

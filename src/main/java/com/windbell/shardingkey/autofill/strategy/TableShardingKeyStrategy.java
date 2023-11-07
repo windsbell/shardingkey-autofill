@@ -1,5 +1,6 @@
 package com.windbell.shardingkey.autofill.strategy;
 
+import com.windbell.shardingkey.autofill.finder.ShardingValueFinder;
 import lombok.Data;
 
 import java.util.List;
@@ -13,6 +14,8 @@ import java.util.List;
 public class TableShardingKeyStrategy extends ShardingKeyStrategy {
 
     private String table; // 表名
+
+    private ShardingValueFinder shardingValueFinder; // 表对应的分片键查找器Class
 
     private List<String> necessaryBusinessKeys; // 必要业务键列表[条件中必须出现的业务键,通过其中出现的所有业务键可查出分库分表等键值对]
 

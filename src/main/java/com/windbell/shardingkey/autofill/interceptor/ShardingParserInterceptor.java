@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.PluginUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.baomidou.mybatisplus.extension.parser.JsqlParserSupport;
 import com.baomidou.mybatisplus.extension.plugins.inner.InnerInterceptor;
+import com.windbell.shardingkey.autofill.config.TableShardingStrategyHelper;
 import com.windbell.shardingkey.autofill.handler.ShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windbell.shardingkey.autofill.logger.CustomerLoggerFactory;
@@ -61,7 +62,7 @@ public class ShardingParserInterceptor extends JsqlParserSupport implements Inne
         }
         return statements.getStatements().stream()
                 .map(statement -> {
-                    shardingStrategyHandler.parse(statement, obj);
+                    shardingStrategyHandler.parse(statement, obj, TableShardingStrategyHelper.find(statement));
                     return statement.toString();
                 }).collect(Collectors.joining(StringPool.SEMICOLON))
                 + StringPool.SEMICOLON;

@@ -14,4 +14,6 @@ public class ShardingKeyStrategy {
 
     private String databaseShardKey; // 分库键
 
+    private String finderClassName; // 分片键查找器ClassName
+
 }
