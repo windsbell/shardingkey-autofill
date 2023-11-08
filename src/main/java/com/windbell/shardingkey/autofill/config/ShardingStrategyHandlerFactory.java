@@ -3,7 +3,6 @@ package com.windbell.shardingkey.autofill.config;
 import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.windbell.shardingkey.autofill.finder.ShardingValueFinder;
-import com.windbell.shardingkey.autofill.finder.ShardingValueFinderFactory;
 import com.windbell.shardingkey.autofill.handler.AbstractShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.handler.ShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty;
@@ -53,13 +52,12 @@ public class ShardingStrategyHandlerFactory {
             return ShardingStrategyHandlerFactory.getDefaultInstance();
         }
         if (!(AbstractShardingStrategyHandler.class.isAssignableFrom(shardingStrategyHandler.getClass()))) {
-            throw new ClassCastException(String.format("自定义分片键策略：%s 必须继承自AbstractShardingStrategyHandler！", shardingStrategyHandler.getClass()));
+            throw new ClassCastException(String.format("自定义分片键策略实现类：%s 必须继承于%s！", shardingStrategyHandler.getClass(), AbstractShardingStrategyHandler.class.getName()));
         }
         return shardingStrategyHandler;
     }
 
     private static ShardingStrategyHandler getFromServices() {
-        // 工厂返回从项目中取的SPI第一条实现者
         ServiceLoader<ShardingStrategyHandler> services = ServiceLoader.load(ShardingStrategyHandler.class);
         Iterator<ShardingStrategyHandler> iterator = services.iterator();
         if (iterator.hasNext()) {
@@ -70,9 +68,7 @@ public class ShardingStrategyHandlerFactory {
 
     private static void initInstances() {
         // 默认加载handler包下所有的实现ShardingStrategyHandler（自动填充分片键策略接口）的策略处理类收集到工厂
-        List<Class<?>> classList = PackageUtil.getClassList(SHARDING_STRATEGY_HANDLER_PACKAGE_NAME, false
-                , clazz -> clazz.getSuperclass() != null && ShardingStrategyHandler.class.isAssignableFrom(clazz)
-                        && AbstractShardingStrategyHandler.class.isAssignableFrom(clazz.getSuperclass()));
+        List<Class<?>> classList = PackageUtil.getClassList(SHARDING_STRATEGY_HANDLER_PACKAGE_NAME, false, clazz -> clazz.getSuperclass() != null && ShardingStrategyHandler.class.isAssignableFrom(clazz) && AbstractShardingStrategyHandler.class.isAssignableFrom(clazz.getSuperclass()));
         for (Class<?> clazz : classList) {
             try {
                 AbstractShardingStrategyHandler shardingStrategyHandler = (AbstractShardingStrategyHandler) clazz.newInstance();
@@ -83,19 +79,17 @@ public class ShardingStrategyHandlerFactory {
         }
     }
 
-    static void registerStrategyHelper(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty) {
+    static void registerStrategyHelper(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty, ShardingValueFinderFactory shardingValueFinderFactory) {
         checkShardProperties(shardingKeyAutoFillProperty);
         List<TableShardingKeyProperty> strategies = shardingKeyAutoFillProperty.getStrategies();
         for (TableShardingKeyProperty strategy : strategies) {
-            String tableShardKey = strategy.getTableShardKey();
-            String databaseShardKey = strategy.getDatabaseShardKey();
-            String finderClassName = strategy.getFinderClassName();
-            ShardingValueFinder shardingValueFinder = ShardingValueFinderFactory.getInstance(finderClassName);
+            String tableShardKey = strategy.getTableShardKey().trim();
+            String databaseShardKey = strategy.getDatabaseShardKey().trim();
+            String finderClassName = strategy.getFinderClassName().trim();
+            ShardingValueFinder shardingValueFinder = shardingValueFinderFactory.getInstance(finderClassName);
             // 保证列表不能出现重复内容
-            List<String> necessaryBusinessKeys = CollectionUtils.isEmpty(strategy.getNecessaryBusinessKeys())
-                    ? strategy.getNecessaryBusinessKeys() : strategy.getNecessaryBusinessKeys().stream().distinct().collect(Collectors.toList());
-            List<String> anyOneBusinessKeys = CollectionUtils.isEmpty(strategy.getAnyOneBusinessKeys())
-                    ? strategy.getAnyOneBusinessKeys() : strategy.getAnyOneBusinessKeys().stream().distinct().collect(Collectors.toList());
+            List<String> necessaryBusinessKeys = CollectionUtils.isEmpty(strategy.getNecessaryBusinessKeys()) ? strategy.getNecessaryBusinessKeys() : strategy.getNecessaryBusinessKeys().stream().map(String::trim).distinct().collect(Collectors.toList());
+            List<String> anyOneBusinessKeys = CollectionUtils.isEmpty(strategy.getAnyOneBusinessKeys()) ? strategy.getAnyOneBusinessKeys() : strategy.getAnyOneBusinessKeys().stream().map(String::trim).distinct().collect(Collectors.toList());
             List<String> suitableTables = strategy.getSuitableTables();
             for (String suitableTable : suitableTables) {
                 TableShardingKeyStrategy tableShardingStrategy = new TableShardingKeyStrategy();
@@ -111,7 +105,7 @@ public class ShardingStrategyHandlerFactory {
                 }
                 String errorNotHaseDatabaseShardKey = String.format("condition must contain database sharding key field:%s！", strategy.getDatabaseShardKey());
                 String errorNotHaseTableShardKey = String.format("condition must contain table sharding key field:%s！", strategy.getTableShardKey());
-                tableShardingStrategy.setTable(suitableTable);
+                tableShardingStrategy.setTable(suitableTable.trim());
                 tableShardingStrategy.setTableShardKey(tableShardKey);
                 tableShardingStrategy.setDatabaseShardKey(databaseShardKey);
                 tableShardingStrategy.setShardingValueFinder(shardingValueFinder);

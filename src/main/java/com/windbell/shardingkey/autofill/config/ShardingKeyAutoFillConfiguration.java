@@ -38,14 +38,15 @@ public class ShardingKeyAutoFillConfiguration {
     @Bean
     @ConditionalOnBean(value = {MybatisPlusInterceptor.class})
     public ShardingParserInterceptor registerShardingKeyAutoFill(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty
-            , MybatisPlusInterceptor mybatisPlusInterceptor, @Autowired(required = false) CacheManager cacheManager
-            , @Autowired(required = false) RedisConnectionFactory redisConnectionFactory) {
+            , MybatisPlusInterceptor mybatisPlusInterceptor, ShardingValueFinderFactory shardingValueFinderFactory
+            , @Autowired(required = false) RedisConnectionFactory redisConnectionFactory
+            , @Autowired(required = false) CacheManager cacheManager) {
         // 设置拦截详细日志打印开关
         CustomerLoggerFactory.init(shardingKeyAutoFillProperty.getLogEnabled());
         // 获取分片键策略（若设置自定义分片键策略则注册该实现，否则注册默认分片键策略）
         ShardingStrategyHandler shardingStrategyHandler = ShardingStrategyHandlerFactory.getInstance();
         // 注册策略助手
-        ShardingStrategyHandlerFactory.registerStrategyHelper(shardingKeyAutoFillProperty);
+        ShardingStrategyHandlerFactory.registerStrategyHelper(shardingKeyAutoFillProperty, shardingValueFinderFactory);
         // 初始化分片策略键工厂
         ShardingParserInterceptor shardingParserInterceptor = new ShardingParserInterceptor(shardingStrategyHandler);
         mybatisPlusInterceptor.addInnerInterceptor(shardingParserInterceptor);

@@ -27,7 +27,7 @@ public class ShardingValueCacheFactory {
         if (cachePropertyObj != null) {
             CacheProperty cacheProperty = (CacheProperty) cachePropertyObj;
             if (Objects.nonNull(cacheProperty.getExpire())) expire = cacheProperty.getExpire();
-            if (Objects.nonNull(cacheProperty.getType())) type = cacheProperty.getType();
+            if (Objects.nonNull(cacheProperty.getType())) type = cacheProperty.getType().trim();
         }
         ShardingValueCache shardingValueCache;
         Class<?> cacheClass;
