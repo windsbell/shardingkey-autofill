@@ -165,7 +165,7 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
 
     // 将查询目标分片键值对内容的缓存key
     private static String getShardingValueCacheKey(BusinessKeyStrategy businessKeyStrategy) {
-        // like this ----> databaseShardKey:org_no;tableShardKey:paper_id;exam_id:********
+        // like this ----> databaseShardKey:org_id;tableShardKey:user_id;account_id:********
         String keyPrefix = DATA_BASE_SHARD_KEY + businessKeyStrategy.getShardingKeyStrategy().getDatabaseShardKey() + KEY_SEPARATOR
                 + TABLE_SHARD_KEY + businessKeyStrategy.getShardingKeyStrategy().getTableShardKey();
         String necessary = Strings.EMPTY;

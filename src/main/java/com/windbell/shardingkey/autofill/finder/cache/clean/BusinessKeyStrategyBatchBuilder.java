@@ -1,13 +1,15 @@
-package com.windbell.shardingkey.autofill.strategy;
+package com.windbell.shardingkey.autofill.finder.cache.clean;
 
-import com.windbell.shardingkey.autofill.finder.ShardingValueCleaner;
-import org.springframework.util.StringUtils;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
+import com.windbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
+import com.windbell.shardingkey.autofill.strategy.BusinessStrategy;
+import com.windbell.shardingkey.autofill.strategy.ShardingKeyStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 业务分片键字段映射策略批量建造器，支持链式调用动态构建
+ * 业务分片键字段映射策略批量建造器，支持链式调用动态构建，可用来批量清理分片键值对内容所在cache
  *
  * @author windbell
  */
@@ -38,7 +40,7 @@ public class BusinessKeyStrategyBatchBuilder {
     }
 
     public BusinessKeyStrategyBatchBuilder setShardingKeyStrategy(String databaseShardKey, String tableShardKey) {
-        if (!StringUtils.isEmpty(databaseShardKey) && !StringUtils.isEmpty(tableShardKey)) {
+        if (StringUtils.isNotBlank(databaseShardKey) && StringUtils.isNotBlank(tableShardKey)) {
             shardingKeyStrategy.setDatabaseShardKey(databaseShardKey);
             shardingKeyStrategy.setTableShardKey(tableShardKey);
         }
@@ -46,7 +48,7 @@ public class BusinessKeyStrategyBatchBuilder {
     }
 
     public BusinessKeyStrategyBatchBuilder setNecessaryBusinessKey(String key, String value) {
-        if (!StringUtils.isEmpty(key) && !StringUtils.isEmpty(value)) {
+        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
             BusinessStrategy businessStrategy = new BusinessStrategy();
             businessStrategy.setKey(key);
             businessStrategy.setValue(value);
@@ -56,7 +58,7 @@ public class BusinessKeyStrategyBatchBuilder {
     }
 
     public BusinessKeyStrategyBatchBuilder setAnyOneBusinessKey(String key, String value) {
-        if (!StringUtils.isEmpty(key) && !StringUtils.isEmpty(value)) {
+        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
             BusinessStrategy businessStrategy = new BusinessStrategy();
             businessStrategy.setKey(key);
             businessStrategy.setValue(value);

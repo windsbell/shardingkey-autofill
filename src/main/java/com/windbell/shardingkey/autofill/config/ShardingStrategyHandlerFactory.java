@@ -52,7 +52,8 @@ public class ShardingStrategyHandlerFactory {
             return ShardingStrategyHandlerFactory.getDefaultInstance();
         }
         if (!(AbstractShardingStrategyHandler.class.isAssignableFrom(shardingStrategyHandler.getClass()))) {
-            throw new ClassCastException(String.format("自定义分片键策略实现类：%s 必须继承于%s！", shardingStrategyHandler.getClass(), AbstractShardingStrategyHandler.class.getName()));
+            throw new ClassCastException(String.format("自定义分片键策略实现类：%s 必须继承于%s！"
+                    , shardingStrategyHandler.getClass(), AbstractShardingStrategyHandler.class.getName()));
         }
         return shardingStrategyHandler;
     }
@@ -68,7 +69,9 @@ public class ShardingStrategyHandlerFactory {
 
     private static void initInstances() {
         // 默认加载handler包下所有的实现ShardingStrategyHandler（自动填充分片键策略接口）的策略处理类收集到工厂
-        List<Class<?>> classList = PackageUtil.getClassList(SHARDING_STRATEGY_HANDLER_PACKAGE_NAME, false, clazz -> clazz.getSuperclass() != null && ShardingStrategyHandler.class.isAssignableFrom(clazz) && AbstractShardingStrategyHandler.class.isAssignableFrom(clazz.getSuperclass()));
+        List<Class<?>> classList = PackageUtil.getClassList(SHARDING_STRATEGY_HANDLER_PACKAGE_NAME, false
+                , clazz -> clazz.getSuperclass() != null && ShardingStrategyHandler.class.isAssignableFrom(clazz)
+                        && AbstractShardingStrategyHandler.class.isAssignableFrom(clazz.getSuperclass()));
         for (Class<?> clazz : classList) {
             try {
                 AbstractShardingStrategyHandler shardingStrategyHandler = (AbstractShardingStrategyHandler) clazz.newInstance();
@@ -88,8 +91,12 @@ public class ShardingStrategyHandlerFactory {
             String finderClassName = strategy.getFinderClassName().trim();
             ShardingValueFinder shardingValueFinder = shardingValueFinderFactory.getInstance(finderClassName);
             // 保证列表不能出现重复内容
-            List<String> necessaryBusinessKeys = CollectionUtils.isEmpty(strategy.getNecessaryBusinessKeys()) ? strategy.getNecessaryBusinessKeys() : strategy.getNecessaryBusinessKeys().stream().map(String::trim).distinct().collect(Collectors.toList());
-            List<String> anyOneBusinessKeys = CollectionUtils.isEmpty(strategy.getAnyOneBusinessKeys()) ? strategy.getAnyOneBusinessKeys() : strategy.getAnyOneBusinessKeys().stream().map(String::trim).distinct().collect(Collectors.toList());
+            List<String> necessaryBusinessKeys = CollectionUtils.isEmpty(strategy.getNecessaryBusinessKeys())
+                    ? strategy.getNecessaryBusinessKeys() : strategy.getNecessaryBusinessKeys().stream()
+                    .map(String::trim).distinct().collect(Collectors.toList());
+            List<String> anyOneBusinessKeys = CollectionUtils.isEmpty(strategy.getAnyOneBusinessKeys())
+                    ? strategy.getAnyOneBusinessKeys() : strategy.getAnyOneBusinessKeys().stream()
+                    .map(String::trim).distinct().collect(Collectors.toList());
             List<String> suitableTables = strategy.getSuitableTables();
             for (String suitableTable : suitableTables) {
                 TableShardingKeyStrategy tableShardingStrategy = new TableShardingKeyStrategy();
