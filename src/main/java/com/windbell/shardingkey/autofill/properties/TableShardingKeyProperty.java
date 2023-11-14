@@ -2,8 +2,10 @@ package com.windbell.shardingkey.autofill.properties;
 
 import com.windbell.shardingkey.autofill.strategy.ShardingKeyStrategy;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
+
 
 /**
  * 表分片策略配置
@@ -11,6 +13,7 @@ import java.util.List;
  * @author windbell
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TableShardingKeyProperty extends ShardingKeyStrategy {
 
     private List<String> suitableTables; // 适配对应分片策略的表集合

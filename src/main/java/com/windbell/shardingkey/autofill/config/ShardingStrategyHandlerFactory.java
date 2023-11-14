@@ -46,21 +46,18 @@ public class ShardingStrategyHandlerFactory {
         return SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.get(DEFAULT_SHARDING_STRATEGY_HANDLER_TYPE);
     }
 
-    static ShardingStrategyHandler getInstance() {
-        ShardingStrategyHandler shardingStrategyHandler = getFromServices();
+    static AbstractShardingStrategyHandler getInstance() {
+        AbstractShardingStrategyHandler shardingStrategyHandler = getFromServices();
         if (shardingStrategyHandler == null) {
             return ShardingStrategyHandlerFactory.getDefaultInstance();
         }
-        if (!(AbstractShardingStrategyHandler.class.isAssignableFrom(shardingStrategyHandler.getClass()))) {
-            throw new ClassCastException(String.format("自定义分片键策略实现类：%s 必须继承于%s！"
-                    , shardingStrategyHandler.getClass(), AbstractShardingStrategyHandler.class.getName()));
-        }
+        SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.putIfAbsent(shardingStrategyHandler.getClass().getName(), shardingStrategyHandler);
         return shardingStrategyHandler;
     }
 
-    private static ShardingStrategyHandler getFromServices() {
-        ServiceLoader<ShardingStrategyHandler> services = ServiceLoader.load(ShardingStrategyHandler.class);
-        Iterator<ShardingStrategyHandler> iterator = services.iterator();
+    private static AbstractShardingStrategyHandler getFromServices() {
+        ServiceLoader<AbstractShardingStrategyHandler> services = ServiceLoader.load(AbstractShardingStrategyHandler.class);
+        Iterator<AbstractShardingStrategyHandler> iterator = services.iterator();
         if (iterator.hasNext()) {
             return iterator.next();
         }

@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.windbell.shardingkey.autofill.finder.cache.ShardingValueCacheDecorator;
 import com.windbell.shardingkey.autofill.finder.cache.ShardingValueCacheFactory;
-import com.windbell.shardingkey.autofill.handler.ShardingStrategyHandler;
+import com.windbell.shardingkey.autofill.handler.AbstractShardingStrategyHandler;
 import com.windbell.shardingkey.autofill.interceptor.ShardingParserInterceptor;
 import com.windbell.shardingkey.autofill.logger.CustomerLoggerFactory;
 import com.windbell.shardingkey.autofill.properties.CacheProperty;
@@ -44,7 +44,7 @@ public class ShardingKeyAutoFillConfiguration {
         // 设置拦截详细日志打印开关
         CustomerLoggerFactory.init(shardingKeyAutoFillProperty.getLogEnabled());
         // 获取分片键策略（若设置自定义分片键策略则注册该实现，否则注册默认分片键策略）
-        ShardingStrategyHandler shardingStrategyHandler = ShardingStrategyHandlerFactory.getInstance();
+        AbstractShardingStrategyHandler shardingStrategyHandler = ShardingStrategyHandlerFactory.getInstance();
         // 注册策略助手
         ShardingStrategyHandlerFactory.registerStrategyHelper(shardingKeyAutoFillProperty, shardingValueFinderFactory);
         // 初始化分片策略键工厂
