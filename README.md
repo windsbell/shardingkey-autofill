@@ -55,11 +55,11 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 ### 快速开始
 
-1. 引入pom.xml依赖（当前最新版号为：**1.1.4**）
+1. 引入pom.xml依赖（当前最新版号为：**1.1.5**）
 
    ````xml
    <dependency>
-    <groupId>com.windbell</groupId>
+    <groupId>io.github.windsbell</groupId>
     <artifactId>shardingkey-autofill</artifactId>
     <version>最新版号</version>
    </dependency>
@@ -80,7 +80,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
    ```yaml
    spring:
    ## 自动填充分片键策略插件配置
-     shardingkey-autofill:
+     shardingkeyAutofill:
        # 分片键值对内容缓存[首次执行查找器得到分片键值对并缓存，之后则在有效期内从缓存提取进行填充]（不填写则默认本地缓存、过期1小时）
        cache:
          # 类型[default（本地缓存）、redis（redis缓存）、spring（spring cache缓存）]
@@ -128,7 +128,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
            List<BusinessStrategy> necessaryBusinessKeys = businessKeyStrategy.getNecessaryBusinessKeys();
            for (BusinessStrategy businessStrategy : necessaryBusinessKeys) {
                String key = businessStrategy.getKey(); //  "account_id"
-               String accountId = businessStrategy.getValue(); // "123"
+               String accountId = businessStrategy.getValue(); // "123***"
                if ("account_id".equals(key)) {
                     userId = findUserIdByAccountId(accountId);
                     orgId = findOrgIdByUserId(userId);
@@ -140,7 +140,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
                List<BusinessStrategy> anyOneBusinessKeys = businessKeyStrategy.getAnyOneBusinessKeys();
                for (BusinessStrategy anyOneBusinessKey : anyOneBusinessKeys) {
                    String key = anyOneBusinessKey.getKey(); //  "mobile"
-                   String mobile = anyOneBusinessKey.getValue(); // "130"
+                   String mobile = anyOneBusinessKey.getValue(); // "130***"
                    if ("mobile".equals(key)) {
                        userId = findUserIdByMobile(mobile);
                        orgId = findOrgIdByUserId(userId);
