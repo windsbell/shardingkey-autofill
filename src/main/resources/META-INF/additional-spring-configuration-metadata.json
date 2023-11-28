@@ -5,27 +5,27 @@
       "type": "java.lang.Boolean",
       "defaultValue": true,
       "description": "启用拦截日志开关[true:开启 false：不开启 不填写则默认开启].",
-      "sourceType": "com.windbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty"
     },
     {
       "name": "spring.shardingkey-autofill.cache.type",
       "type": "java.lang.String",
       "defaultValue": "default",
       "description": "类型[default（本地缓存）、redis（redis缓存）、spring（spring cache缓存）].",
-      "sourceType": "com.windbell.shardingkey.autofill.properties.CacheProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.CacheProperty"
     },
     {
       "name": "spring.shardingkey-autofill.cache.expire",
       "type": "java.lang.Long",
       "defaultValue": 3600,
       "description": "过期时间 [单位：秒 不填写则默认一小时].",
-      "sourceType": "com.windbell.shardingkey.autofill.properties.CacheProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.CacheProperty"
     },
     {
       "name": "spring.shardingkey-autofill.strategies",
-      "type": "java.util.List<com.windbell.shardingkey.autofill.properties.TableShardingKeyProperty>",
+      "type": "java.util.List<com.windsbell.shardingkey.autofill.properties.TableShardingKeyProperty>",
       "description": "适配策略的表集合[多个表则对应都所使用的分片键都相同].",
-      "sourceType": "com.windbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty"
     }
   ],
   "hints": [
