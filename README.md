@@ -59,7 +59,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 ### 快速开始
 
-1. 引入pom.xml依赖 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img alt="maven" src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号:"></a></p>
+1. 引入pom.xml依赖 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img  src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号"></a></p>
    ````xml
    <dependency>
     <groupId>io.github.windsbell</groupId>
@@ -117,7 +117,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
          ****
    ```
 
-4. 业务书写实现上面每个策略集中的分片键查找器（finderClassName），实现接口com.windsbell.shardingkey.autofill.finder.ShardingValueFinder，自定义书写通过业务键查询到分片键内容逻辑，用来提供给框架调用）
+4. 业务书写实现上面每个策略集中的分片键查找器finderClassName，实现接口com.windsbell.shardingkey.autofill.finder.ShardingValueFinder（自定义书写通过业务键查询到分片键内容逻辑，用来提供给框架调用）
 
    ```java
    public class CustomerShardingValueFinder implements ShardingValueFinder {
