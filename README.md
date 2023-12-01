@@ -59,7 +59,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 ### 快速开始
 
-1. 引入pom.xml依赖 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img  src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号"></a></p>
+1. 引入pom.xml依赖	<a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img  src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fwindsbell%2Fshardingkey-autofill%2Fmaven-metadata.xml&query=%2F%2Fmetadata%2Fversioning%2Flatest&style=flat-square&label=%E6%9C%80%E6%96%B0%E7%89%88%E6%9C%AC%E5%8F%B7"></a>
    ````xml
    <dependency>
     <groupId>io.github.windsbell</groupId>
