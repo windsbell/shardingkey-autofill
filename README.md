@@ -1,9 +1,8 @@
 ## Shardingkey-Autofill 
-<p align="left"><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill">
-	<img alt="maven" src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fwindsbell%2Fshardingkey-autofill%2Fmaven-metadata.xml&query=%2F%2Fmetadata%2Fversioning%2Flatest&style=flat-square&label=maven-central">
-</a><a href="https://www.apache.org/licenses/LICENSE-2.0">
-	<img alt="maven" src="https://img.shields.io/github/license/windsbell/shardingkey-autofill.svg?style=flat-square">
+<p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill">
+	<img src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fwindsbell%2Fshardingkey-autofill%2Fmaven-metadata.xml&query=%2F%2Fmetadata%2Fversioning%2Flatest&style=flat-square&label=maven-central"></a><a href="https://www.apache.org/licenses/LICENSE-2.0"><img  src="https://img.shields.io/github/license/windsbell/shardingkey-autofill.svg?style=flat-square">
 </a></p>
+
 
 ### 介绍
 
@@ -11,14 +10,14 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 ### 前言
 
-    1. 面对正要落地实施分库分表的项目，有大面积的原始业务SQL语句，需要手动改造：确保查询条件中有分片键（分库、分表字段），目的是让对应框架能够正确路由到对应的库和表）
-    2. 对于每次新的业务开发，SQL书写时都得冗余手动补充分片键，如果遗漏任何一处没有补充，可能导致等运行后才发现：路由到错误的库或表、甚至跨库查询并合并，而导致查询到错误的结果
-    3. 当原始业务SQL本身条件中含有一些业务字段，而通过其关联查询可以查到对应的分片键时，为此在需要改造目前业务代码，提取业务字段进行查询匹配到的分片键字段，再补充到最终SQL条件中，这种“动作”显得重复而又多余
+- 面对正要落地实施分库分表的项目，有大面积的原始业务SQL语句，需要手动改造：确保查询条件中有分片键（分库、分表字段），目的是让对应框架能够正确路由到对应的库和表）
+- 对于每次新的业务开发，SQL书写时都得冗余手动补充分片键，如果遗漏任何一处没有补充，可能导致等运行后才发现：路由到错误的库或表、甚至跨库查询并合并，而导致查询到错误的结果
+- 当原始业务SQL本身条件中含有一些业务字段，而通过其关联查询可以查到对应的分片键时，为此在需要改造目前业务代码，提取业务字段进行查询匹配到的分片键字段，再补充到最终SQL条件中，这种“动作”显得重复而又多余
 
 ### 特性
 
-    1. 基于springboot和mybatis-plus的自动填充分片键框架：将上述直面场景提炼出来，通过一些简单的配置，让具备现有查询条件能够关联查询到分库、分表等分片键字段场景的SQL，可以自动拦截并将分片键填充到至里面，无需手动操作
-    2. 实现功能：针对目前流行使用的mybatis-plus框架，执行Service单表SQL逻辑层面，可以自动进行拦截填充分片键；而对于mapper.xml层面，目前实现了是否有出现分片键的检查，自动填充分片键有待实现（持续跟进连表条件适配中...）
+- 基于springboot和mybatis-plus的自动填充分片键框架：将上述直面场景提炼出来，通过一些简单的配置，让具备现有查询条件能够关联查询到分库、分表等分片键字段场景的SQL，可以自动拦截并将分片键填充到至里面，无需手动操作
+- 实现功能：针对目前流行使用的mybatis-plus框架，执行Service单表SQL逻辑层面，可以自动进行拦截填充分片键；而对于mapper.xml层面，目前实现了是否有出现分片键的检查，自动填充分片键有待实现（持续跟进连表条件适配中...）
 
 ### 直面场景
 
@@ -36,21 +35,21 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 - 业务查询改造步骤：
 
-    1. 对原始业务调用查询前，提取用户账户id
+    1. 对原始业务调用查询前，提取用户账户id：account_id
 
-    2. 找到分表键，前往用户账户表查询用户id
+    2. 找到分表键，前往用户账户表查询用户id： 
 
     ```sql
     SELECT user_id FROM user_account_info WHERE account_id = '123'
     ```
 
-    3. 找到分库键，前往用户表查询机构id ：
+    3. 找到分库键，前往用户表查询机构id ：org_id
 
     ```sql
     SELECT org_id FROM user_info WHERE user_id = '456'
     ```
 
-    4. 拿到上述分片键，填充原始业务查询：
+    4. 拿到上述分片键（user_id、org_id），填充原始业务查询：
 
     ```sql
     SELECT * FROM order_info WHERE account_id = '123' AND order_id =  '001' AND user_id = '456' AND org_id = '789'
@@ -60,7 +59,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 ### 快速开始
 
-1. 引入pom.xml依赖 <a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img alt="maven" src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号:"></a>
+1. 引入pom.xml依赖 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img alt="maven" src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号:"></a></p>
 
    ````xml
    <dependency>
@@ -119,7 +118,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
          ****
    ```
 
-4. 业务书写实现上面每个策略集中的分片键查找器：实现com.windbell.shardingkey.autofill.finder.ShardingValueFinder，添加通过业务键查询到分片键内容逻辑，用来提供给框架调用）
+4. 业务书写实现上面每个策略集中的分片键查找器（finderClassName），实现接口com.windsbell.shardingkey.autofill.finder.ShardingValueFinder，自定义书写通过业务键查询到分片键内容逻辑，用来提供给框架调用）
 
    ```java
    public class CustomerShardingValueFinder implements ShardingValueFinder {
@@ -173,7 +172,25 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
    }
    ```
 
-5. 备注：
+5. 业务执行：
+
+    ```java
+    // 原始业务SQL--> mybatis-plus 查询某个账户下的某个订单信息
+    List<OrderInfo> orderInfoList = this.lambdaQuery()
+            .eq(OrderInfo::getAccountId, accountId)
+            .eq(OrderInfo::getOrderId, orderId)
+            .list();	
+    
+    // 框架自动填充分片键后等价于以下查询效果---> 
+    List<OrderInfo> orderInfoList = this.lambdaQuery()
+            .eq(OrderInfo::getAccountId, accountId)
+            .eq(OrderInfo::getOrderId, orderId)
+        	.eq(OrderInfo::getUserId, userId)
+        	.eq(OrderInfo::getOrgId, orgId)
+            .list();	
+    ```
+
+6. 备注：
 
     - 拦截日志：如果打开spring.shardingkeyaAutofill.logEnabled = true，在执行原始业务时，可以观察到具体哪些SQL片段的拦截以及哪些分片键字段被自动填充的过程
     - 分片键值对内容缓存：设置spring.shardingkeyaAutofill.cache，目前支持本地缓存（不设置则为默认缓存方式）、redis（自动读取spring
