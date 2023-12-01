@@ -1,6 +1,6 @@
 ## Shardingkey-Autofill 
 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill">
-	<img src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fwindsbell%2Fshardingkey-autofill%2Fmaven-metadata.xml&query=%2F%2Fmetadata%2Fversioning%2Flatest&style=flat-square&label=maven-central"></a><a href="https://www.apache.org/licenses/LICENSE-2.0"><img  src="https://img.shields.io/github/license/windsbell/shardingkey-autofill.svg?style=flat-square">
+	<img src="https://img.shields.io/badge/dynamic/xml?url=https%3A%2F%2Frepo1.maven.org%2Fmaven2%2Fio%2Fgithub%2Fwindsbell%2Fshardingkey-autofill%2Fmaven-metadata.xml&query=%2F%2Fmetadata%2Fversioning%2Flatest&style=flat-square&label=maven-central"></a> <a href="https://www.apache.org/licenses/LICENSE-2.0"><img  src="https://img.shields.io/github/license/windsbell/shardingkey-autofill.svg?style=flat-square">
 </a></p>
 
 
@@ -35,21 +35,21 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 - 业务查询改造步骤：
 
-    1. 对原始业务调用查询前，提取用户账户id：account_id
+    1. 对原始业务调用查询前，提取用户账户id：**account_id**
 
-    2. 找到分表键，前往用户账户表查询用户id： 
+    2. 找到分表键，前往用户账户表查询用户id： **user_id**
 
     ```sql
     SELECT user_id FROM user_account_info WHERE account_id = '123'
     ```
 
-    3. 找到分库键，前往用户表查询机构id ：org_id
+    3. 找到分库键，前往用户表查询机构id ：**org_id**
 
     ```sql
     SELECT org_id FROM user_info WHERE user_id = '456'
     ```
 
-    4. 拿到上述分片键（user_id、org_id），填充原始业务查询：
+    4. 拿到上述分片键（**user_id**、**org_id**），填充原始业务查询：
 
     ```sql
     SELECT * FROM order_info WHERE account_id = '123' AND order_id =  '001' AND user_id = '456' AND org_id = '789'
@@ -60,14 +60,13 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 ### 快速开始
 
 1. 引入pom.xml依赖 <p><a href="https://central.sonatype.com/artifact/io.github.windsbell/shardingkey-autofill"><img alt="maven" src="https://img.shields.io/badge/dynamic/xml?url=https://repo1.maven.org/maven2/io/github/windsbell/shardingkey-autofill/maven-metadata.xml&query=//metadata/versioning/latest&style=flat-square&label=最新版本号:"></a></p>
-
    ````xml
    <dependency>
     <groupId>io.github.windsbell</groupId>
     <artifactId>shardingkey-autofill</artifactId>
     <version>最新版本号</version>
    </dependency>
-
+   
 2. springboot启动类，添加开启使用分片键自动填充注解（**@EnableShardingKeyAutoFill**）
    ```java
    @EnableShardingKeyAutoFill
