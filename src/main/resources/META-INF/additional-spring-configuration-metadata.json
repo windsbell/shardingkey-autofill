@@ -12,14 +12,14 @@
       "type": "java.lang.String",
       "defaultValue": "default",
       "description": "类型[default（本地缓存）、redis（redis缓存）、spring（spring cache缓存）].",
-      "sourceType": "com.windsbell.shardingkey.autofill.properties.CacheProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.ShardingValueCacheProperty"
     },
     {
       "name": "spring.shardingkey-autofill.cache.expire",
       "type": "java.lang.Long",
       "defaultValue": 3600,
       "description": "过期时间 [单位：秒 不填写则默认一小时].",
-      "sourceType": "com.windsbell.shardingkey.autofill.properties.CacheProperty"
+      "sourceType": "com.windsbell.shardingkey.autofill.properties.ShardingValueCacheProperty"
     },
     {
       "name": "spring.shardingkey-autofill.strategies",
