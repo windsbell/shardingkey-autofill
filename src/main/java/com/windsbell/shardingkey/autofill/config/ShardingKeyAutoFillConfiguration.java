@@ -3,14 +3,16 @@ package com.windsbell.shardingkey.autofill.config;
 
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
-import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCacheDecorator;
-import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCacheFactory;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandler;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandlerFactory;
+import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCachedHandler;
 import com.windsbell.shardingkey.autofill.handler.AbstractShardingStrategyHandler;
 import com.windsbell.shardingkey.autofill.interceptor.ShardingParserInterceptor;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
-import com.windsbell.shardingkey.autofill.properties.CacheProperty;
 import com.windsbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty;
+import com.windsbell.shardingkey.autofill.properties.ShardingValueCacheProperty;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -50,18 +52,21 @@ public class ShardingKeyAutoFillConfiguration {
         // 初始化分片策略键工厂
         ShardingParserInterceptor shardingParserInterceptor = new ShardingParserInterceptor(shardingStrategyHandler);
         mybatisPlusInterceptor.addInnerInterceptor(shardingParserInterceptor);
-        // 创建分片键值对内容加载的缓存
-        CacheProperty cacheProperty = shardingKeyAutoFillProperty.getCache();
-        Object[] args = {cacheProperty, redisConnectionFactory, cacheManager};
-        ShardingValueCacheDecorator shardingValueCache = ShardingValueCacheFactory.newInstance(args);
+        // 创建分片键值对内容加载处理器
+        ShardingValueCacheProperty shardingValueCacheProperty = shardingKeyAutoFillProperty.getCache();
+        Object[] args = {shardingValueCacheProperty, redisConnectionFactory, cacheManager};
+        ShardingValueHandler shardingValueHandler = ShardingValueHandlerFactory.initInstance(args);
         // 设置阻断拦截器,防止全表更新与删除
         boolean containBlockAttackInnerInterceptor = mybatisPlusInterceptor.getInterceptors()
                 .stream().anyMatch(innerInterceptor -> innerInterceptor instanceof BlockAttackInnerInterceptor);
         if (!containBlockAttackInnerInterceptor)
             mybatisPlusInterceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
-        log.info("Register sharding key autofill success！ [Log enabled: {}, Key-value cache type: {}, Strategy handler type: {}]"
-                , shardingKeyAutoFillProperty.getLogEnabled(), shardingValueCache.getCacheClass().getName()
-                , shardingStrategyHandler.getClass().getName());
+        String cacheType = Strings.EMPTY;
+        if (shardingValueHandler instanceof ShardingValueCachedHandler) {
+            cacheType = "type:" + ((ShardingValueCachedHandler) shardingValueHandler).getCacheClass().getName();
+        }
+        log.info("Register sharding key autofill success！ [Log enabled: {}, Key-value cache enabled:{} {}, Strategy handler type:{}]"
+                , shardingKeyAutoFillProperty.getLogEnabled(), shardingValueCacheProperty.getEnabled(), cacheType, shardingStrategyHandler.getClass().getName());
         return shardingParserInterceptor;
     }
 

@@ -25,7 +25,7 @@ public class RedisShardingValueCache implements ShardingValueCache {
      */
     private final RedisTemplate<String, ShardingValueStrategy> redisTemplate;
 
-    RedisShardingValueCache(RedisConnectionFactory redisConnectionFactory, Long expire) {
+    public RedisShardingValueCache(RedisConnectionFactory redisConnectionFactory, Long expire) {
         RedisTemplate<String, ShardingValueStrategy> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(redisConnectionFactory);
         redisTemplate.setKeySerializer(new StringRedisSerializer());

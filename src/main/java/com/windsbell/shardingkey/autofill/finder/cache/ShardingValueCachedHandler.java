@@ -2,6 +2,7 @@ package com.windsbell.shardingkey.autofill.finder.cache;
 
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.windsbell.shardingkey.autofill.finder.ShardingValueFinder;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandler;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
 import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
@@ -15,13 +16,13 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
- * 分片键值对缓存装饰器
+ * 分片键值对缓存版处理器
  *
  * @author windbell
  */
-public class ShardingValueCacheDecorator implements ShardingValueCache {
+public class ShardingValueCachedHandler implements ShardingValueCache, ShardingValueHandler {
 
-    private static final CustomerLogger log = CustomerLoggerFactory.getLogger(ShardingValueCacheDecorator.class);
+    private static final CustomerLogger log = CustomerLoggerFactory.getLogger(ShardingValueCachedHandler.class);
 
     /**
      * 分片键值对缓存
@@ -53,7 +54,7 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
 
     private static final String VALUE_SEPARATOR = ":";
 
-    public ShardingValueCacheDecorator(ShardingValueCache shardingValueCache, Class<?> cacheClass) {
+    public ShardingValueCachedHandler(ShardingValueCache shardingValueCache, Class<?> cacheClass) {
         this.cache = shardingValueCache;
         this.cacheClass = cacheClass;
     }
@@ -76,7 +77,8 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
     /**
      * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，再置入cache，后面同样语句类型直接从cache中拿取
      */
-    public ShardingValueStrategy get(BusinessKeyStrategy businessKeyStrategy, ShardingValueFinder shardingValueFinder) {
+    @Override
+    public ShardingValueStrategy doFind(BusinessKeyStrategy businessKeyStrategy, ShardingValueFinder shardingValueFinder) {
         String shardingValueCacheKey = getShardingValueCacheKey(businessKeyStrategy);
         waitWhilePutting(shardingValueCacheKey);
         // 查询缓存
@@ -98,7 +100,7 @@ public class ShardingValueCacheDecorator implements ShardingValueCache {
         try {
             synchronized (lockMap.computeIfAbsent(shardingValueCacheKey, k -> new Object())) {
                 // 未命中则使用分片键值对查找器执行查找（查找器通过SPI用户程序自行定制实现）
-                shardingValueStrategy = shardingValueFinder.apply(businessKeyStrategy);
+                shardingValueStrategy = shardingValueFinder.find(businessKeyStrategy);
                 // 查找器匹配到任意一条分片键时方可置入cache中
                 if (shardingValueStrategy != null &&
                         (StringUtils.isNotBlank(shardingValueStrategy.getTableShardValue()) ||

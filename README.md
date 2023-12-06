@@ -84,13 +84,15 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
    spring:
    ## 自动填充分片键策略插件配置
      shardingkeyAutofill:
-       # 分片键值对内容缓存[首次执行查找器得到分片键值对并缓存，之后则在有效期内从缓存提取进行填充]（不填写则默认本地缓存、过期1小时）
+       # 分片键值对内容缓存[选填，若配置开启后：首次执行查找器得到分片键值对并缓存，之后则在有效期内从缓存提取进行填充]
        cache:
-         # 类型[default（本地缓存）、redis（redis缓存）、spring（spring cache缓存）]
+         # 是否启用缓存开关 [选填，true:开启 false：不开启，推荐开启提升体验，不填写默认不开启]
+         enabled: true
+         # 类型[选填，default（本地缓存）、redis（redis缓存）、spring（spring cache缓存），不填写默认default]
          type: default
-         # 过期时间 [单位：秒 ，不填写则默认一小时]
+         # 过期时间 [选填，单位：秒 ，不填写则默认一小时]
          expire: 3600
-       # 启用拦截日志开关[true:开启 false：不开启，不填写则默认开启]
+       # 启用拦截日志开关[选填，true:开启 false：不开启，不填写则默认开启]
        logEnabled: false
        # 策略集 [分片键都相同的一组数据表作为一个策略集进行配置]
        strategies:
@@ -123,7 +125,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
    public class CustomerShardingValueFinder implements ShardingValueFinder {
    
        @Override
-       public ShardingValueStrategy apply(BusinessKeyStrategy businessKeyStrategy) {
+       public ShardingValueStrategy find(BusinessKeyStrategy businessKeyStrategy) {
            ShardingValueStrategy shardingValueStrategy = new ShardingValueStrategy();
            String userId = null; // 分表键
            String orgId = null; // 分库键
@@ -192,9 +194,9 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 6. 备注：
 
     - 拦截日志：如果打开spring.shardingkeyaAutofill.logEnabled = true，在执行原始业务时，可以观察到具体哪些SQL片段的拦截以及哪些分片键字段被自动填充的过程
-    - 分片键值对内容缓存：设置spring.shardingkeyaAutofill.cache，目前支持本地缓存（不设置则为默认缓存方式）、redis（自动读取spring
+    - 分片键值对内容缓存：设置spring.shardingkeyaAutofill.cache，若开启后，目前支持本地缓存（不设置则为默认缓存方式）、redis（自动读取spring
       redis starter配置）、spring cache ，业务查询在同样条件下，首次执行查找器找到分片键值内容会进行缓存，之后则在缓存有效期内直接自动从缓存提取并设置到条件当中
-    - 分片键值对内容缓存重置：如果在缓存有效期内，分片键值对关联关系发生变化（业务变更了），这时需要在关系变更后，及时清理键值对内容缓存，避免框架执行时拿取旧的关系，而影响查询结果；可以使用ShardingValueCleaner实现类辅助缓存清理，之后业务查询时会重新执行查找器重新进行新的键值对内容缓存构建
+    - 分片键值对内容缓存重置：若开启键值内容缓存后，如果在缓存有效期内，分片键值对关联关系发生变化（业务变更了），这时需要在关系变更后，及时清理键值对内容缓存，避免框架执行时拿取旧的关系，而影响查询结果；可以使用ShardingValueCleaner实现类辅助缓存清理，之后业务查询时会重新执行查找器重新进行新的键值对内容缓存构建
     - 分片键自动填充核心处理类：目前对于mapper.xml层面，实现了是否有出现分片键的检查，自动填充分片键还未实现，主要在于连表相关join时条件解析和适配相对复杂，不过笔者有预留支持SPI方式的拓展，使用者可以通过继承AbstractShardingStrategyHandler来diy
 
 ### 说明

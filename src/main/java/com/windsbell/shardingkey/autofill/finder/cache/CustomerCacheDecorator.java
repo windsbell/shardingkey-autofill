@@ -26,7 +26,7 @@ public class CustomerCacheDecorator implements ShardingValueCache {
     private final AsyncExpireListener asyncExpireListener;
 
 
-    CustomerCacheDecorator(ShardingValueCache shardingValueCache, Long expire) {
+    public CustomerCacheDecorator(ShardingValueCache shardingValueCache, Long expire) {
         this.expire = expire * 1000;
         asyncExpireListener = new DefaultAsyncExpireListener();
         cache = shardingValueCache;

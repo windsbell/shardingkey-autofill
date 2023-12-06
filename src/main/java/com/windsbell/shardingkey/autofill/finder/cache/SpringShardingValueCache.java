@@ -16,7 +16,7 @@ public class SpringShardingValueCache implements ShardingValueCache {
 
     private final Cache cache;
 
-    SpringShardingValueCache(CacheManager cacheManager) {
+    public SpringShardingValueCache(CacheManager cacheManager) {
         cache = cacheManager.getCache(CACHE_NAME);
     }
 

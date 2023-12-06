@@ -1,9 +1,11 @@
 package com.windsbell.shardingkey.autofill.finder.cache.clean;
 
 
-import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCacheDecorator;
-import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCacheFactory;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandler;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandlerFactory;
+import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCachedHandler;
 import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
@@ -17,20 +19,30 @@ import java.util.List;
  *
  * @author windbell
  */
-public class ShardingValueCleaner extends ShardingValueCacheFactory {
+@Slf4j
+public class ShardingValueCleaner extends ShardingValueHandlerFactory {
 
     // 清理
     public static void clear(BusinessKeyStrategy businessKeyStrategy) {
-        ShardingValueCacheFactory.getInstance().remove(businessKeyStrategy);
+        ShardingValueHandler finder = ShardingValueHandlerFactory.getHandler();
+        if (finder instanceof ShardingValueCachedHandler) {
+            ((ShardingValueCachedHandler) finder).remove(businessKeyStrategy);
+        } else {
+            log.warn("There is no implementation here that needs to remove the sharding value cache！");
+        }
     }
 
     // 批量清理
     public static void clearBatch(List<BusinessKeyStrategy> businessKeyStrategyList) {
-        if (!CollectionUtils.isEmpty(businessKeyStrategyList)) {
-            ShardingValueCacheDecorator shardingValueCacheDecorator = ShardingValueCacheFactory.getInstance();
-            for (BusinessKeyStrategy businessKeyStrategy : businessKeyStrategyList) {
-                shardingValueCacheDecorator.remove(businessKeyStrategy);
+        ShardingValueHandler finder = ShardingValueHandlerFactory.getHandler();
+        if (finder instanceof ShardingValueCachedHandler) {
+            if (!CollectionUtils.isEmpty(businessKeyStrategyList)) {
+                for (BusinessKeyStrategy businessKeyStrategy : businessKeyStrategyList) {
+                    ((ShardingValueCachedHandler) finder).remove(businessKeyStrategy);
+                }
             }
+        } else {
+            log.warn("There is no implementation here that needs to remove the sharding value cache！");
         }
     }
 

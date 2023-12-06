@@ -29,13 +29,13 @@ public class ShardingValueFinderFactory {
             throw new RuntimeException(e);
         }
         if (!ShardingValueFinder.class.isAssignableFrom(loadedClass)) {
-            throw new ClassCastException(String.format("分片键查找器实现类：%s 必须实现%s！", finderClassName, ShardingValueFinder.class.getName()));
+            throw new ClassCastException(String.format("sharding key finder:%s needs to implement:%s！", finderClassName, ShardingValueFinder.class.getName()));
         }
         try {
-            return (ShardingValueFinder) applicationContext.getBean(loadedClass);
+            return (ShardingValueFinder) applicationContext.getBean(loadedClass); // 优先从spring容器加载
         } catch (NoSuchBeanDefinitionException e) {
             try {
-                return (ShardingValueFinder) loadedClass.getDeclaredConstructor().newInstance();
+                return (ShardingValueFinder) loadedClass.getDeclaredConstructor().newInstance(); // 其次再进行反射创建
             } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
                      InvocationTargetException exception) {
                 throw new RuntimeException(exception);

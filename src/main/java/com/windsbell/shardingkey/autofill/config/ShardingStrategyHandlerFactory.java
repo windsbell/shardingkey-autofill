@@ -123,14 +123,14 @@ public class ShardingStrategyHandlerFactory {
 
     private static void checkShardProperties(ShardingKeyAutoFillProperty shardingKeyAutoFillProperty) {
         List<TableShardingKeyProperty> strategies = shardingKeyAutoFillProperty.getStrategies();
-        Assert.notEmpty(strategies, "未配置策略集[spring.shardingkeyAutofill.strategies]！");
+        Assert.notEmpty(strategies, "please configure strategies [spring.shardingkeyAutofill.strategies]！");
         for (TableShardingKeyProperty table : strategies) {
-            Assert.notEmpty(table.getSuitableTables(), "未配置适配的表集合[spring.shardingkeyAutofill.strategies.suitableTables]！");
-            Assert.notEmpty(table.getTableShardKey(), "未配置分表键[spring.shardingkeyAutofill.strategies.tableShardKey]！");
-            Assert.notEmpty(table.getDatabaseShardKey(), "未配置分库键[spring.shardingkeyAutofill.strategies.databaseShardKey]！");
-            Assert.notEmpty(table.getFinderClassName(), "未配置分库键查找器Class[spring.shardingkeyAutofill.strategies.finderClassName]！");
+            Assert.notEmpty(table.getSuitableTables(), "please configure strategies for suitableTables [spring.shardingkeyAutofill.strategies.suitableTables]！");
+            Assert.notEmpty(table.getTableShardKey(), "please configure table shard key [spring.shardingkeyAutofill.strategies.tableShardKey]！");
+            Assert.notEmpty(table.getDatabaseShardKey(), "please configure database shard key [spring.shardingkeyAutofill.strategies.databaseShardKey]！");
+            Assert.notEmpty(table.getFinderClassName(), "please configure finder class name [spring.shardingkeyAutofill.strategies.finderClassName]！");
             Assert.isFalse(CollectionUtils.isEmpty(table.getNecessaryBusinessKeys()) && CollectionUtils.isEmpty(table.getAnyOneBusinessKeys())
-                    , "请配置关键业务字段列表或者任务业务字段列表之一[spring.shardingkeyAutofill.strategies.necessaryBusinessKeys(or anyOneBusinessKeys)]！");
+                    , "please configure necessary business keys or any one business keys [spring.shardingkeyAutofill.strategies.necessaryBusinessKeys(or anyOneBusinessKeys)]！");
         }
     }
 

@@ -1,7 +1,7 @@
 package com.windsbell.shardingkey.autofill.handler;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
-import com.windsbell.shardingkey.autofill.finder.cache.ShardingValueCacheFactory;
+import com.windsbell.shardingkey.autofill.finder.ShardingValueHandlerFactory;
 import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
 import com.windsbell.shardingkey.autofill.strategy.ShardingValueStrategy;
 import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
@@ -14,7 +14,7 @@ import org.springframework.lang.Nullable;
  *
  * @author windbell
  */
-public abstract class AbstractShardingStrategyHandler extends ShardingValueCacheFactory implements ShardingStrategyHandler {
+public abstract class AbstractShardingStrategyHandler extends ShardingValueHandlerFactory implements ShardingStrategyHandler {
 
     // SQL类型：查询
     protected final static String SQL_COMMAND_SELECT = "select";
@@ -54,8 +54,10 @@ public abstract class AbstractShardingStrategyHandler extends ShardingValueCache
     /**
      * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，再置入cache，后面同样语句类型直接从cache中拿取
      */
-    protected ShardingValueStrategy findShardingKeyValueStrategy(BusinessKeyStrategy businessKeyStrategy, TableShardingKeyStrategy tableShardingKeyStrategy) {
-        return ShardingValueCacheFactory.getInstance().get(businessKeyStrategy, tableShardingKeyStrategy.getShardingValueFinder());
+    protected ShardingValueStrategy findShardingKeyValueStrategy(BusinessKeyStrategy businessKeyStrategy
+            , TableShardingKeyStrategy tableShardingKeyStrategy) {
+        return ShardingValueHandlerFactory.getHandler()
+                .doFind(businessKeyStrategy, tableShardingKeyStrategy.getShardingValueFinder());
     }
 
 
