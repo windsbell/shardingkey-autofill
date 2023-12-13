@@ -52,7 +52,7 @@ public abstract class AbstractShardingStrategyHandler extends ShardingValueHandl
     }
 
     /**
-     * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，再置入cache，后面同样语句类型直接从cache中拿取
+     * 公共方法：通过业务键策略，使用分片键查找器查到对应分片键值内容，可选配是否置入cache，如果置入cache，则后面同样语句类型直接从cache中拿取
      */
     protected ShardingValueStrategy findShardingKeyValueStrategy(BusinessKeyStrategy businessKeyStrategy
             , TableShardingKeyStrategy tableShardingKeyStrategy) {

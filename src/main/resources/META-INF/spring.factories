@@ -1,4 +1,3 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
   com.windsbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty,\
-  com.windsbell.shardingkey.autofill.config.ShardingKeyAutoFillConfiguration,\
   com.windsbell.shardingkey.autofill.config.ShardingValueFinderFactory

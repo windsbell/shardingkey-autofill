@@ -18,7 +18,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 
 
@@ -28,7 +27,6 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
  * @author windbell
  */
 @Slf4j
-@Configuration(proxyBeanMethods = false)
 public class ShardingKeyAutoFillConfiguration {
 
     @Bean
@@ -57,14 +55,13 @@ public class ShardingKeyAutoFillConfiguration {
         Object[] args = {shardingValueCacheProperty, redisConnectionFactory, cacheManager};
         ShardingValueHandler shardingValueHandler = ShardingValueHandlerFactory.initInstance(args);
         // 设置阻断拦截器,防止全表更新与删除
-        boolean containBlockAttackInnerInterceptor = mybatisPlusInterceptor.getInterceptors()
-                .stream().anyMatch(innerInterceptor -> innerInterceptor instanceof BlockAttackInnerInterceptor);
-        if (!containBlockAttackInnerInterceptor)
+        boolean noneMatchBlockAttackInnerInterceptor = mybatisPlusInterceptor.getInterceptors()
+                .stream().noneMatch(innerInterceptor -> innerInterceptor instanceof BlockAttackInnerInterceptor);
+        if (noneMatchBlockAttackInnerInterceptor)
             mybatisPlusInterceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         String cacheType = Strings.EMPTY;
-        if (shardingValueHandler instanceof ShardingValueCachedHandler) {
+        if (shardingValueHandler instanceof ShardingValueCachedHandler)
             cacheType = "type:" + ((ShardingValueCachedHandler) shardingValueHandler).getCacheClass().getName();
-        }
         log.info("Register sharding key autofill success！ [Log enabled: {}, Key-value cache enabled:{} {}, Strategy handler type:{}]"
                 , shardingKeyAutoFillProperty.getLogEnabled(), shardingValueCacheProperty.getEnabled(), cacheType, shardingStrategyHandler.getClass().getName());
         return shardingParserInterceptor;
