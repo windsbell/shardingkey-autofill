@@ -8,9 +8,9 @@ import lombok.Data;
  * @author windbell
  */
 @Data
-public class BusinessStrategy {
+public class BusinessStrategy<V> {
 
     private String Key;   // 业务唯一键字段
 
-    private String value; // 业务唯一键字段值
+    private V value; // 业务唯一键字段值
 }

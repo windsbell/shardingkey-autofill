@@ -1,7 +1,7 @@
 package com.windsbell.shardingkey.autofill.utils;
 
 
-import org.springframework.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
@@ -137,7 +137,7 @@ public class PackageUtil {
 
     private static String getClassName(String packageName, String fileName) {
         String className = fileName.substring(0, fileName.lastIndexOf("."));
-        if (!StringUtils.isEmpty(packageName)) {
+        if (StringUtils.isNotBlank(packageName)) {
             className = packageName + "." + className;
         }
         return className;
@@ -145,7 +145,7 @@ public class PackageUtil {
 
     private static String getSubPackagePath(String packagePath, String filePath) {
         String subPackagePath = filePath;
-        if (!StringUtils.isEmpty(packagePath)) {
+        if (StringUtils.isNotBlank(packagePath)) {
             subPackagePath = packagePath + "/" + subPackagePath;
         }
         return subPackagePath;
@@ -153,7 +153,7 @@ public class PackageUtil {
 
     private static String getSubPackageName(String packageName, String filePath) {
         String subPackageName = filePath;
-        if (!StringUtils.isEmpty(packageName)) {
+        if (StringUtils.isNotBlank(packageName)) {
             subPackageName = packageName + "." + subPackageName;
         }
         return subPackageName;

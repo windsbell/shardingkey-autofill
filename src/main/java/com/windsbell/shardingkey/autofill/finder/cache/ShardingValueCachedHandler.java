@@ -1,6 +1,5 @@
 package com.windsbell.shardingkey.autofill.finder.cache;
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.windsbell.shardingkey.autofill.finder.ShardingValueFinder;
 import com.windsbell.shardingkey.autofill.finder.ShardingValueHandler;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
@@ -9,6 +8,7 @@ import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
 import com.windsbell.shardingkey.autofill.strategy.ShardingValueStrategy;
 import lombok.Getter;
 import net.sf.jsqlparser.expression.NullValue;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.util.CollectionUtils;
 

@@ -10,15 +10,18 @@ import com.windsbell.shardingkey.autofill.config.TableShardingStrategyHelper;
 import com.windsbell.shardingkey.autofill.handler.ShardingStrategyHandler;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
+import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.statement.Statements;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.ibatis.executor.statement.StatementHandler;
 import org.apache.ibatis.mapping.BoundSql;
 import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.SqlCommandType;
 
 import java.sql.Connection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +65,10 @@ public class ShardingParserInterceptor extends JsqlParserSupport implements Inne
         }
         return statements.getStatements().stream()
                 .map(statement -> {
-                    shardingStrategyHandler.parse(statement, obj, TableShardingStrategyHelper.find(statement));
+                    List<TableShardingKeyStrategy> tableShardingKeyStrategyList = TableShardingStrategyHelper.find(statement);
+                    if (ObjectUtils.isNotEmpty(tableShardingKeyStrategyList)) {
+                        shardingStrategyHandler.parse(statement, obj, tableShardingKeyStrategyList);
+                    }
                     return statement.toString();
                 }).collect(Collectors.joining(StringPool.SEMICOLON))
                 + StringPool.SEMICOLON;

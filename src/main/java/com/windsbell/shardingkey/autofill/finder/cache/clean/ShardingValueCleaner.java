@@ -24,9 +24,9 @@ public class ShardingValueCleaner extends ShardingValueHandlerFactory {
 
     // 清理
     public static void clear(BusinessKeyStrategy businessKeyStrategy) {
-        ShardingValueHandler finder = ShardingValueHandlerFactory.getHandler();
-        if (finder instanceof ShardingValueCachedHandler) {
-            ((ShardingValueCachedHandler) finder).remove(businessKeyStrategy);
+        ShardingValueHandler handler = ShardingValueHandlerFactory.getHandler();
+        if (handler instanceof ShardingValueCachedHandler) {
+            ((ShardingValueCachedHandler) handler).remove(businessKeyStrategy);
         } else {
             log.warn("There is no implementation here that needs to remove the sharding value cache！");
         }
@@ -34,11 +34,11 @@ public class ShardingValueCleaner extends ShardingValueHandlerFactory {
 
     // 批量清理
     public static void clearBatch(List<BusinessKeyStrategy> businessKeyStrategyList) {
-        ShardingValueHandler finder = ShardingValueHandlerFactory.getHandler();
-        if (finder instanceof ShardingValueCachedHandler) {
+        ShardingValueHandler handler = ShardingValueHandlerFactory.getHandler();
+        if (handler instanceof ShardingValueCachedHandler) {
             if (!CollectionUtils.isEmpty(businessKeyStrategyList)) {
                 for (BusinessKeyStrategy businessKeyStrategy : businessKeyStrategyList) {
-                    ((ShardingValueCachedHandler) finder).remove(businessKeyStrategy);
+                    ((ShardingValueCachedHandler) handler).remove(businessKeyStrategy);
                 }
             }
         } else {

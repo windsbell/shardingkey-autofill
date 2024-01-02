@@ -1,9 +1,6 @@
 package com.windsbell.shardingkey.autofill.finder.cache.clean;
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
-import com.windsbell.shardingkey.autofill.strategy.BusinessStrategy;
-import com.windsbell.shardingkey.autofill.strategy.ShardingKeyStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,80 +10,46 @@ import java.util.List;
  *
  * @author windbell
  */
-public class BusinessKeyStrategyBatchBuilder {
-
-    private BusinessKeyStrategy businessKeyStrategy;  // 业务分片键字段映射策略
-
-    private ShardingKeyStrategy shardingKeyStrategy;  // 分片键字段映射策略[分表键、分库键]
-
-    private List<BusinessStrategy> necessaryBusinessKeys;  // 必要业务键列表[条件中必须出现的业务键,通过其中出现的所有业务键可查出分库分表等键值对]
-
-    private List<BusinessStrategy> anyOneBusinessKeys; // 任意业务键列表[条件中出现以下任意一个业务键即可满足可查出分库分表等键值对]
+public class BusinessKeyStrategyBatchBuilder extends BusinessKeyStrategyBuilder {
 
     private List<BusinessKeyStrategy> businessKeyStrategyList = new ArrayList<>(); // 业务分片键字段映射策略集合
 
-    public BusinessKeyStrategyBatchBuilder() {
+    public static BusinessKeyStrategyBatchBuilder builder() {
+        return new BusinessKeyStrategyBatchBuilder();
+    }
+
+    private BusinessKeyStrategyBatchBuilder() {
         init();
     }
 
-    private void init() {
-        this.businessKeyStrategy = new BusinessKeyStrategy();
-        this.shardingKeyStrategy = new ShardingKeyStrategy();
-        this.necessaryBusinessKeys = new ArrayList<>();
-        this.anyOneBusinessKeys = new ArrayList<>();
-        businessKeyStrategy.setShardingKeyStrategy(shardingKeyStrategy);
-        businessKeyStrategy.setNecessaryBusinessKeys(necessaryBusinessKeys);
-        businessKeyStrategy.setAnyOneBusinessKeys(anyOneBusinessKeys);
-    }
-
-    public BusinessKeyStrategyBatchBuilder setShardingKeyStrategy(String databaseShardKey, String tableShardKey) {
-        if (StringUtils.isNotBlank(databaseShardKey) && StringUtils.isNotBlank(tableShardKey)) {
-            shardingKeyStrategy.setDatabaseShardKey(databaseShardKey);
-            shardingKeyStrategy.setTableShardKey(tableShardKey);
-        }
-        return this;
-    }
-
-    public BusinessKeyStrategyBatchBuilder setNecessaryBusinessKey(String key, String value) {
-        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
-            BusinessStrategy businessStrategy = new BusinessStrategy();
-            businessStrategy.setKey(key);
-            businessStrategy.setValue(value);
-            this.necessaryBusinessKeys.add(businessStrategy);
-        }
-        return this;
-    }
-
-    public BusinessKeyStrategyBatchBuilder setAnyOneBusinessKey(String key, String value) {
-        if (StringUtils.isNotBlank(key) && StringUtils.isNotBlank(value)) {
-            BusinessStrategy businessStrategy = new BusinessStrategy();
-            businessStrategy.setKey(key);
-            businessStrategy.setValue(value);
-            this.anyOneBusinessKeys.add(businessStrategy);
-        }
-        return this;
-    }
-
+    /**
+     * 一轮策略设置完成后的标记, 再次进入下一轮设置
+     */
     public BusinessKeyStrategyBatchBuilder one() {
         businessKeyStrategyList.add(businessKeyStrategy);
         init();
         return this;
     }
 
-    public List<BusinessKeyStrategy> build() {
+    /**
+     * 所有策略批量构建完成后的标记，返回所有策略集
+     */
+    public List<BusinessKeyStrategy> buildBatch() {
         return this.businessKeyStrategyList;
     }
 
     /**
      * 清空重置
      */
-    public void clear() {
+    @Override
+    public void reset() {
         this.businessKeyStrategyList = new ArrayList<>();
     }
 
     /**
      * 清空分片键字段映射策略集对应的 分片键值对内容所在cache
      */
+    @Override
     public void clearShardingValue() {
         ShardingValueCleaner.clearBatch(this.businessKeyStrategyList);
     }

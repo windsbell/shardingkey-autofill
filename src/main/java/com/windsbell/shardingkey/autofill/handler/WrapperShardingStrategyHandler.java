@@ -2,13 +2,12 @@ package com.windsbell.shardingkey.autofill.handler;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
-import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
 import com.windsbell.shardingkey.autofill.strategy.*;
+import lombok.Getter;
 import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -19,48 +18,59 @@ import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * wrapper类型SQL自动填充分片键策略处理类
+ * 此处理器废弃：请移步新的Wrapper2ShardingStrategyHandler
  *
  * @author windbell
  */
+@Deprecated
 public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHandler implements ShardingStrategyHandler {
+
+    @Getter
+    protected boolean isEffective = false;
 
     private static final CustomerLogger log = CustomerLoggerFactory.getLogger(WrapperShardingStrategyHandler.class);
 
     /**
      * statement:预处理语句
      * parameterObject: 替换参数对象
+     * tableShardingKeyStrategyList: 表分片键映射策略 （单表一条，多表多条）
      */
     @Override
-    public void parse(Statement statement, Object parameterObject, TableShardingKeyStrategy tableShardingKeyStrategy) {
+    public void parse(Statement statement, Object parameterObject, List<TableShardingKeyStrategy> tableShardingKeyStrategyList) {
         AbstractWrapper<?, ?, ?> wrapper = super.tryAndGetWrapper(parameterObject);
         if (wrapper != null) {
             if (statement instanceof Select) {
                 Select select = (Select) statement;
                 if (select.getSelectBody() instanceof PlainSelect) {
                     PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                    this.parseWrapper(SQL_COMMAND_SELECT, statement, (Parenthesis) plainSelect.getWhere(), wrapper, tableShardingKeyStrategy);
+                    for (TableShardingKeyStrategy tableShardingKeyStrategy : tableShardingKeyStrategyList) {
+                        this.parseWrapper(SQL_COMMAND_SELECT, statement, (Parenthesis) plainSelect.getWhere(), wrapper, tableShardingKeyStrategy);
+                    }
                 }
             } else if (statement instanceof Update) {
                 Update update = (Update) statement;
-                this.parseWrapper(SQL_COMMAND_UPDATE, statement, (Parenthesis) update.getWhere(), wrapper, tableShardingKeyStrategy);
+                for (TableShardingKeyStrategy tableShardingKeyStrategy : tableShardingKeyStrategyList) {
+                    this.parseWrapper(SQL_COMMAND_SELECT, statement, (Parenthesis) update.getWhere(), wrapper, tableShardingKeyStrategy);
+                }
             } else if (statement instanceof Delete) {
                 Delete delete = (Delete) statement;
-                this.parseWrapper(SQL_COMMAND_DELETE, statement, (Parenthesis) delete.getWhere(), wrapper, tableShardingKeyStrategy);
+                for (TableShardingKeyStrategy tableShardingKeyStrategy : tableShardingKeyStrategyList) {
+                    this.parseWrapper(SQL_COMMAND_DELETE, statement, (Parenthesis) delete.getWhere(), wrapper, tableShardingKeyStrategy);
+                }
+
             }
         }
     }
 
-
-    private static List<BusinessStrategy> selectBusinessStrategies(List<String> tableShardingStrategy, String sqlSegment, AbstractWrapper<?, ?, ?> wrapper) {
-        List<BusinessStrategy> businessStrategies = new ArrayList<>();
+    private static List<BusinessStrategy<?>> selectBusinessStrategies(List<String> tableShardingStrategy, String sqlSegment, AbstractWrapper<?, ?, ?> wrapper) {
+        List<BusinessStrategy<?>> businessStrategies = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(tableShardingStrategy)) {
             for (String businessKey : tableShardingStrategy) {
                 String businessKeyEqual = businessKey + " =";
@@ -68,7 +78,7 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
                     String pKey = sqlSegment.split(businessKey + " =")[1].split("paramNameValuePairs.")[1].split("}")[0];
                     Object valueObj = wrapper.getParamNameValuePairs().get(pKey);
                     if (valueObj != null && StringUtils.isNotBlank(valueObj.toString())) {
-                        BusinessStrategy businessStrategy = new BusinessStrategy();
+                        BusinessStrategy<String> businessStrategy = new BusinessStrategy<>();
                         businessStrategy.setKey(businessKey);
                         businessStrategy.setValue(valueObj.toString());
                         businessStrategies.add(businessStrategy);
@@ -138,9 +148,9 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
         shardingKeyStrategy.setDatabaseShardKey(tableShardingStrategy.getDatabaseShardKey());
         businessKeyStrategy.setShardingKeyStrategy(shardingKeyStrategy);
         // 必填字段列表
-        List<BusinessStrategy> necessaryBusinessKeys = selectBusinessStrategies(tableShardingStrategy.getNecessaryBusinessKeys(), sqlSegment, wrapper);
+        List<BusinessStrategy<?>> necessaryBusinessKeys = selectBusinessStrategies(tableShardingStrategy.getNecessaryBusinessKeys(), sqlSegment, wrapper);
         // 任意字段列表
-        List<BusinessStrategy> anyOneBusinessKeys = selectBusinessStrategies(tableShardingStrategy.getAnyOneBusinessKeys(), sqlSegment, wrapper);
+        List<BusinessStrategy<?>> anyOneBusinessKeys = selectBusinessStrategies(tableShardingStrategy.getAnyOneBusinessKeys(), sqlSegment, wrapper);
 
         /*
          *      1.如果配置有必填字段列表，SQL必须满足有搭配所有必填字段，才能为后续提供自动查询出分库分表键进行填充
@@ -153,22 +163,6 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
         return businessKeyStrategy;
     }
 
-    private void checkBusinessStrategies(Statement statement, TableShardingKeyStrategy tableShardingStrategy
-            , List<BusinessStrategy> necessaryBusinessStrategies, List<BusinessStrategy> anyOneBusinessStrategies) {
-        Assert.isFalse(CollectionUtils.isNotEmpty(tableShardingStrategy.getNecessaryBusinessKeys())
-                && CollectionUtils.isEmpty(necessaryBusinessStrategies), tableShardingStrategy.getErrorNotHasNecessaryBusinessKeys());
-        if (CollectionUtils.isNotEmpty(tableShardingStrategy.getNecessaryBusinessKeys()) && CollectionUtils.isNotEmpty(necessaryBusinessStrategies)) {
-            Map<String, String> necessaryBusinessStrategiesMap = necessaryBusinessStrategies.stream()
-                    .collect(Collectors.toMap(BusinessStrategy::getKey, BusinessStrategy::getValue));
-            for (String necessaryBusinessKey : tableShardingStrategy.getNecessaryBusinessKeys()) {
-                Assert.isTrue(necessaryBusinessStrategiesMap.containsKey(necessaryBusinessKey)
-                        , statement + ": " + tableShardingStrategy.getErrorNotHasNecessaryBusinessKeys());
-            }
-        }
-
-        Assert.isFalse(CollectionUtils.isNotEmpty(tableShardingStrategy.getAnyOneBusinessKeys())
-                && CollectionUtils.isEmpty(anyOneBusinessStrategies), statement + ": " + tableShardingStrategy.getErrorNotHasAnyOneBusinessKeys());
-    }
 
     private EqualsTo combineEqualsTo(String shardKey, String value) {
         EqualsTo equalsTo = new EqualsTo();

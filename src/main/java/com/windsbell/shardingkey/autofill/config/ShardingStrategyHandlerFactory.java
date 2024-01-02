@@ -1,6 +1,5 @@
 package com.windsbell.shardingkey.autofill.config;
 
-import com.baomidou.mybatisplus.core.toolkit.Assert;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.windsbell.shardingkey.autofill.finder.ShardingValueFinder;
 import com.windsbell.shardingkey.autofill.handler.AbstractShardingStrategyHandler;
@@ -10,6 +9,7 @@ import com.windsbell.shardingkey.autofill.properties.TableShardingKeyProperty;
 import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import com.windsbell.shardingkey.autofill.utils.PackageUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.util.Assert;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -126,10 +126,10 @@ public class ShardingStrategyHandlerFactory {
         Assert.notEmpty(strategies, "please configure strategies [spring.shardingkeyAutofill.strategies]！");
         for (TableShardingKeyProperty table : strategies) {
             Assert.notEmpty(table.getSuitableTables(), "please configure strategies for suitableTables [spring.shardingkeyAutofill.strategies.suitableTables]！");
-            Assert.notEmpty(table.getTableShardKey(), "please configure table shard key [spring.shardingkeyAutofill.strategies.tableShardKey]！");
-            Assert.notEmpty(table.getDatabaseShardKey(), "please configure database shard key [spring.shardingkeyAutofill.strategies.databaseShardKey]！");
-            Assert.notEmpty(table.getFinderClassName(), "please configure finder class name [spring.shardingkeyAutofill.strategies.finderClassName]！");
-            Assert.isFalse(CollectionUtils.isEmpty(table.getNecessaryBusinessKeys()) && CollectionUtils.isEmpty(table.getAnyOneBusinessKeys())
+            Assert.notEmpty(new String[]{table.getTableShardKey()}, "please configure table shard key [spring.shardingkeyAutofill.strategies.tableShardKey]！");
+            Assert.notEmpty(new String[]{table.getDatabaseShardKey()}, "please configure database shard key [spring.shardingkeyAutofill.strategies.databaseShardKey]！");
+            Assert.notEmpty(new String[]{table.getFinderClassName()}, "please configure finder class name [spring.shardingkeyAutofill.strategies.finderClassName]！");
+            Assert.isTrue(!(CollectionUtils.isEmpty(table.getNecessaryBusinessKeys()) && CollectionUtils.isEmpty(table.getAnyOneBusinessKeys()))
                     , "please configure necessary business keys or any one business keys [spring.shardingkeyAutofill.strategies.necessaryBusinessKeys(or anyOneBusinessKeys)]！");
         }
     }

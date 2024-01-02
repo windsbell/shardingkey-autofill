@@ -1,14 +1,11 @@
 package com.windsbell.shardingkey.autofill.config;
 
+import com.windsbell.shardingkey.autofill.jsqlparser.TableNameFinder;
 import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
-import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.update.Update;
-import org.springframework.lang.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -27,24 +24,17 @@ public class TableShardingStrategyHelper {
     /**
      * statement:通过预处理语句，获取对应表的分片键策略
      */
-    @Nullable
-    public static TableShardingKeyStrategy find(Statement statement) {
-        String tableName = null;
-        if (statement instanceof Select) {
-            Select select = (Select) statement;
-            if (select.getSelectBody() instanceof PlainSelect) {
-                PlainSelect plainSelect = (PlainSelect) select.getSelectBody();
-                Table table = (Table) plainSelect.getFromItem();
-                tableName = table.getName();
+    public static List<TableShardingKeyStrategy> find(Statement statement) {
+        List<TableShardingKeyStrategy> tableShardingKeyStrategyList = new ArrayList<>();
+        TableNameFinder tableNameFinder = new TableNameFinder(statement);
+        for (String tableName : tableNameFinder.getTableList()) {
+            TableShardingKeyStrategy tableShardingKeyStrategy = TABLE_STRATEGY_CACHE.get(tableName);
+            if (tableShardingKeyStrategy != null) {
+                tableShardingKeyStrategyList.add(tableShardingKeyStrategy);
             }
-        } else if (statement instanceof Update) {
-            Update update = (Update) statement;
-            tableName = update.getTable().getName();
-        } else if (statement instanceof Delete) {
-            Delete delete = (Delete) statement;
-            tableName = delete.getTable().getName();
         }
-        return TABLE_STRATEGY_CACHE.get(tableName);
+        return tableShardingKeyStrategyList;
+
     }
 
     protected static void put(String suitableTable, TableShardingKeyStrategy tableShardingStrategy) {

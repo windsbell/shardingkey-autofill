@@ -1,8 +1,8 @@
 package com.windsbell.shardingkey.autofill.finder.cache;
 
 
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import lombok.Getter;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
 import java.util.Arrays;
