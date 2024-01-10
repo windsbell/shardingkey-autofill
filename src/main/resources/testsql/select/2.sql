@@ -2,7 +2,7 @@
 SELECT user_name AS fullName,
        order_id
 FROM order_info
-WHERE org_id = '12345'
-  AND statu = 1
-ORDER BY occur_time
-        DESC LIMIT 1,4
+WHERE account_id = '12345'
+  AND status = 1
+ORDER BY create_time DESC
+LIMIT 1,10

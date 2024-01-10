@@ -6,7 +6,8 @@ SELECT t1.user_id,
 FROM user_info t1
          LEFT JOIN order_info t2 ON t1.org_id = t2.org_id
     AND t1.user_id = t2.user_id
-WHERE t1.account_id = '12345'
+WHERE t2.account_id = '12345'
   AND t2.mobile = '133'
-ORDER BY t2.order_time DESC LIMIT 1,4
-
+  AND t1.mobile = '133'
+ORDER BY t2.order_time DESC
+LIMIT 1,10

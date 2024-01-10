@@ -49,11 +49,7 @@ public class ShardingKeyFillerAgent {
                 if (!n && isHit) { // 分片键字段未出现在SQL，并最终填充成功的
                     courseExplain.setHasFilled(true);
                     Map<String, Map<String, String>> finalFilledShardingKeyMap = courseExplain.getFinalFilledShardingKeyMap();
-                    Map<String, String> finalFilledShardingKeyInnerMap = finalFilledShardingKeyMap.get(k);
-                    if (finalFilledShardingKeyInnerMap == null) {
-                        finalFilledShardingKeyInnerMap = new LinkedHashMap<>();
-                        finalFilledShardingKeyMap.put(m, finalFilledShardingKeyInnerMap);
-                    }
+                    Map<String, String> finalFilledShardingKeyInnerMap = finalFilledShardingKeyMap.computeIfAbsent(k, o -> new LinkedHashMap<>());
                     finalFilledShardingKeyInnerMap.put(m, shardingKeyValueInnerMap.get(m));
                 }
             });

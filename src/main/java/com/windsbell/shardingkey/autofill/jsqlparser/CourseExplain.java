@@ -24,9 +24,9 @@ public class CourseExplain {
 
     private List<String> targetTables; // 目标SQL中出现的表集合
 
-    private Map<String, Map<String, String>> targetShardingKeyValueMap; // 目标SQL中，需要用到的分片键
+    private Map<String, Map<String, String>> targetShardingKeyValueMap; // 目标SQL中，需要用到的分片键  【表名  分片键，分片键值 】
 
-    private Map<String, Map<String, String>> finalFilledShardingKeyMap; // 目标SQL中，最终填充了的分片键
+    private Map<String, Map<String, String>> finalFilledShardingKeyMap; // 目标SQL中，最终填充了的分片键 【表名  分片键，分片键值 】
 
     @Override
     public String toString() {

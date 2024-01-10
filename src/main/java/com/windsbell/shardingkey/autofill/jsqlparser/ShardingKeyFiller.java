@@ -12,9 +12,13 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.PlainSelect;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.util.Assert;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 核心API SQL分片键填充
@@ -62,7 +66,7 @@ public class ShardingKeyFiller extends StatementParser {
     private Map<String, Map<String, Boolean>> copyShardingKeyHitFlagMap(Map<String, Map<String, Boolean>> fillShardingKeyFlagMap) {
         Map<String, Map<String, Boolean>> copyFillShardingKeyFlagMap = new LinkedHashMap<>();
         fillShardingKeyFlagMap.forEach((k, v) -> {
-            Map<String, Boolean> innerMap = new HashMap<>(v);
+            Map<String, Boolean> innerMap = new LinkedHashMap<>(v);
             copyFillShardingKeyFlagMap.put(k, innerMap);
         });
         return copyFillShardingKeyFlagMap;
@@ -72,7 +76,7 @@ public class ShardingKeyFiller extends StatementParser {
     private Map<String, Map<String, Boolean>> initFillShardingKeyFlagMap(Map<String, Map<String, String>> fillShardingKeyMap) {
         Map<String, Map<String, Boolean>> fillShardingKeyFlagMap = new LinkedHashMap<>();
         fillShardingKeyMap.forEach((k, v) -> {
-            Map<String, Boolean> innerMap = new HashMap<>();
+            Map<String, Boolean> innerMap = new LinkedHashMap<>();
             v.forEach((m, n) -> innerMap.put(m, false));
             fillShardingKeyFlagMap.put(k, innerMap);
         });
@@ -91,7 +95,7 @@ public class ShardingKeyFiller extends StatementParser {
                     }
                 });
                 if (!notHitList.isEmpty()) {
-                    stringBuilder.append("table:").append(k).append(",sharding key:").append(notHitList).append(" dit not find! \n");
+                    stringBuilder.append("table:").append(k).append(",sharding key:").append(notHitList).append(" dit`t find! \n");
                 }
             }
         });
@@ -166,10 +170,12 @@ public class ShardingKeyFiller extends StatementParser {
                     v.forEach((m, n) -> {
                         if (!n) {
                             String shardingKeyValue = shardingKeyValueInnerMap.get(m);
-                            EqualsTo append = combineEqualsTo(table, m, shardingKeyValue);
-                            AndExpression andExpression = new AndExpression(binaryExpression.getRightExpression(), append);
-                            binaryExpression.setRightExpression(andExpression);
-                            v.put(m, true);
+                            if (StringUtils.isNotBlank(shardingKeyValue)) {
+                                EqualsTo append = combineEqualsTo(table, m, shardingKeyValue);
+                                AndExpression andExpression = new AndExpression(binaryExpression.getRightExpression(), append);
+                                binaryExpression.setRightExpression(andExpression);
+                                v.put(m, true);
+                            }
                         }
                     });
                 }

@@ -12,6 +12,7 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.select.FromItem;
+import net.sf.jsqlparser.statement.select.Join;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import org.springframework.util.CollectionUtils;
 
@@ -40,6 +41,7 @@ public class BusinessKeyStrategyHelper extends StatementParser {
         super(statement);
         this.parameterList = parameterList;
         init(tableShardingKeyStrategyList);
+        statement.accept(this);
     }
 
     private void init(List<TableShardingKeyStrategy> tableShardingKeyStrategyList) {
@@ -55,9 +57,12 @@ public class BusinessKeyStrategyHelper extends StatementParser {
             if (!CollectionUtils.isEmpty(businessKeys)) {
                 Map<String, BusinessStrategy<Object>> businessMap = new LinkedHashMap<>();
                 for (String necessaryBusinessKey : businessKeys) {
-                    businessMap.put(necessaryBusinessKey, null);
+                    BusinessStrategy<Object> businessStrategy = new BusinessStrategy<>();
+                    businessStrategy.setKey(necessaryBusinessKey);
+                    businessStrategy.setValue(null);
+                    businessMap.put(necessaryBusinessKey, businessStrategy);
                 }
-                matchCloumMap.put(tableShardingKeyStrategy.getTableShardKey(), businessMap);
+                matchCloumMap.put(tableShardingKeyStrategy.getTable(), businessMap);
             }
         }
     }
@@ -76,6 +81,7 @@ public class BusinessKeyStrategyHelper extends StatementParser {
             if (anyOneMap != null) {
                 businessKeyStrategy.setNecessaryBusinessKeys(new ArrayList<>(anyOneMap.values()));
             }
+            businessKeyStrategies.add(businessKeyStrategy);
         });
         return businessKeyStrategies;
     }
@@ -89,12 +95,24 @@ public class BusinessKeyStrategyHelper extends StatementParser {
     private void matchBody(PlainSelect plainSelect) {
         FromItem fromItem = plainSelect.getFromItem();
         if (fromItem instanceof Table) {
-            Table table = (Table) fromItem;
-            String tableName = table.getName();
-            Map<String, BusinessStrategy<Object>> necessaryMap = matchNecessaryColumnMap.get(tableName);
-            Map<String, BusinessStrategy<Object>> anyOneMap = matchAnyOneColumnMap.get(tableName);
-            matchColumn(plainSelect.getWhere(), necessaryMap, anyOneMap);
+            matchTable(plainSelect.getWhere(), (Table) fromItem);
         }
+
+        if (plainSelect.getJoins() != null) {
+            for (Join join : plainSelect.getJoins()) {
+                FromItem rightItem = join.getRightItem();
+                if (rightItem instanceof Table) {
+                    matchTable(plainSelect.getWhere(), (Table) rightItem);
+                }
+            }
+        }
+    }
+
+    private void matchTable(Expression expression, Table table) {
+        String tableName = table.getName();
+        Map<String, BusinessStrategy<Object>> necessaryMap = matchNecessaryColumnMap.get(tableName);
+        Map<String, BusinessStrategy<Object>> anyOneMap = matchAnyOneColumnMap.get(tableName);
+        matchColumn(expression, necessaryMap, anyOneMap);
     }
 
     private void matchColumn(Expression expression, Map<String, BusinessStrategy<Object>> necessaryMap, Map<String, BusinessStrategy<Object>> anyOneMap) {
@@ -128,11 +146,9 @@ public class BusinessKeyStrategyHelper extends StatementParser {
                 // String 、 Time 、Long 、等值
                 columnValue = rightExpression.toString();
             }
-            if (!businessMap.containsKey(columnName)) {
-                BusinessStrategy<Object> businessStrategy = new BusinessStrategy<>();
-                businessStrategy.setKey(columnName);
-                businessStrategy.setValue(columnValue);
-                businessMap.put(columnName, businessStrategy);
+            BusinessStrategy<Object> businessStrategy = businessMap.get(columnName);
+            if (businessStrategy.getValue() == null) {
+                businessStrategy.setValue(columnValue); // 补充业务键内容
             }
         }
     }

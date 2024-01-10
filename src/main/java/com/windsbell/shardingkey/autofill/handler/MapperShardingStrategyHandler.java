@@ -5,7 +5,6 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
 import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
-import lombok.Getter;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.conditional.AndExpression;
@@ -29,9 +28,6 @@ import java.util.List;
  */
 @Deprecated
 public class MapperShardingStrategyHandler extends AbstractShardingStrategyHandler implements ShardingStrategyHandler {
-
-    @Getter
-    protected boolean isEffective = false;
 
     private static final CustomerLogger log = CustomerLoggerFactory.getLogger(MapperShardingStrategyHandler.class);
 

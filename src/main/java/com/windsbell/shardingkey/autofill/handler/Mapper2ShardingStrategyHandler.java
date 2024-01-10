@@ -34,7 +34,7 @@ public class Mapper2ShardingStrategyHandler extends AbstractShardingStrategyHand
             MapperMethod.ParamMap<?> paramMap = (MapperMethod.ParamMap<?>) parameterObject;
             List<?> parameterList = getParameterList(paramMap, PARAMETER_PREFIX);
             CourseExplain courseExplain = super.doFill(statement, tableShardingKeyStrategyList, parameterList);
-            if (courseExplain.getHasFilled()) log.info("[mapper :{}]", courseExplain);
+            if (courseExplain.getHasFilled()) log.info("[mapper: {}]", courseExplain);
         }
     }
 

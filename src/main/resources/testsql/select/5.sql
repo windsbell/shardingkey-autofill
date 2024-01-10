@@ -8,7 +8,7 @@ FROM user_info t1,
 WHERE t1.org_id = t2.org_id
   AND t1.user_id = t2.user_id
   AND t1.account_id = '12345'
-GROUP BY t2.product_id, t1.order_time
+GROUP BY t2.product_id, t2.create_time
 
 UNION ALL
 SELECT t1.user_id,
@@ -20,4 +20,4 @@ FROM user_info t1,
 WHERE t1.org_id = t2.org_id
   AND t1.user_id = t2.user_id
   AND t1.org_id = '12345'
-GROUP BY t2.product_id, t2.order_time
+GROUP BY t2.product_id, t2.create_time

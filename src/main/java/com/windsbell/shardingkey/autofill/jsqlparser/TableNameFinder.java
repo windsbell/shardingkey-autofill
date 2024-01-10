@@ -17,7 +17,7 @@ public class TableNameFinder extends StatementParser {
     }
 
     public List<String> getTableList() {
-        return tables;
+        return super.tables;
     }
 
 }

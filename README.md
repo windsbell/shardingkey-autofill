@@ -17,7 +17,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 ### 特性
 
 - 基于springboot和mybatis-plus的自动填充分片键框架：将上述直面场景提炼出来，通过一些简单的配置，让具备现有查询条件能够关联查询到分库、分表等分片键字段场景的SQL，可以自动拦截并将分片键填充到至里面，无需手动操作
-- 实现功能：针对目前流行使用的mybatis-plus框架，执行Service单表SQL逻辑层面，可以自动进行拦截填充分片键；而对于mapper.xml层面，目前实现了是否有出现分片键的检查，自动填充分片键有待实现（持续跟进连表条件适配中...）
+- 实现功能：针对目前流行使用的mybatis-plus框架，支持service (单表ORM)、mapper交互（**适配连表等场景**）
 
 ### 直面场景
 
@@ -66,7 +66,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
     <artifactId>shardingkey-autofill</artifactId>
     <version>最新版本号</version>
    </dependency>
-   
+
 2. springboot启动类，添加开启使用分片键自动填充注解（**@EnableShardingKeyAutoFill**）
    ```java
    @EnableShardingKeyAutoFill
@@ -130,10 +130,10 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
            String userId = null; // 分表键
            String orgId = null; // 分库键
            // 通过必要业务字段查出分片键
-           List<BusinessStrategy> necessaryBusinessKeys = businessKeyStrategy.getNecessaryBusinessKeys();
-           for (BusinessStrategy businessStrategy : necessaryBusinessKeys) {
+           List<BusinessStrategy<?>> necessaryBusinessKeys = businessKeyStrategy.getNecessaryBusinessKeys();
+           for (BusinessStrategy<?> businessStrategy : necessaryBusinessKeys) {
                String key = businessStrategy.getKey(); //  "account_id"
-               String accountId = businessStrategy.getValue(); // "123***"
+               String accountId = (String) businessStrategy.getValue(); // "123***"
                if ("account_id".equals(key)) {
                     userId = findUserIdByAccountId(accountId);
                     orgId = findOrgIdByUserId(userId);
@@ -142,10 +142,10 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
            }
            // 若设有非必要业务字段，也支持通过其查出分片键
            if (StringUtils.isBlank(userId) && StringUtils.isBlank(userId)) {
-               List<BusinessStrategy> anyOneBusinessKeys = businessKeyStrategy.getAnyOneBusinessKeys();
-               for (BusinessStrategy anyOneBusinessKey : anyOneBusinessKeys) {
+               List<BusinessStrategy<?>> anyOneBusinessKeys = businessKeyStrategy.getAnyOneBusinessKeys();
+               for (BusinessStrategy<?> anyOneBusinessKey : anyOneBusinessKeys) {
                    String key = anyOneBusinessKey.getKey(); //  "mobile"
-                   String mobile = anyOneBusinessKey.getValue(); // "130***"
+                   String mobile = (String) anyOneBusinessKey.getValue(); // "130***"
                    if ("mobile".equals(key)) {
                        userId = findUserIdByMobile(mobile);
                        orgId = findOrgIdByUserId(userId);
@@ -175,21 +175,70 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
 
 5. 业务执行：
 
-    ```java
-    // 原始业务SQL--> mybatis-plus 查询某个账户下的某个订单信息
-    List<OrderInfo> orderInfoList = this.lambdaQuery()
-            .eq(OrderInfo::getAccountId, accountId)
-            .eq(OrderInfo::getOrderId, orderId)
-            .list();	
+    - service （单表orm交互）：
+
+        ```java
+        // 原始业务SQL--> mybatis-plus 查询某个账户下的某个订单信息
+        List<OrderInfo> orderInfoList = this.lambdaQuery()
+                .eq(OrderInfo::getAccountId, accountId)
+                .eq(OrderInfo::getOrderId, orderId)
+                .list();	
+        
+        // 框架自动填充分片键后等价于以下查询效果---> 
+        List<OrderInfo> orderInfoList = this.lambdaQuery()
+                .eq(OrderInfo::getAccountId, accountId)
+                .eq(OrderInfo::getOrderId, orderId)
+                .eq(OrderInfo::getUserId, userId)
+                .eq(OrderInfo::getOrgId, orgId)
+                .list();
+        ```
     
-    // 框架自动填充分片键后等价于以下查询效果---> 
-    List<OrderInfo> orderInfoList = this.lambdaQuery()
-            .eq(OrderInfo::getAccountId, accountId)
-            .eq(OrderInfo::getOrderId, orderId)
-        	.eq(OrderInfo::getUserId, userId)
-        	.eq(OrderInfo::getOrgId, orgId)
-            .list();	
-    ```
+
+    - mapper（多表交互）：
+
+       ```xml
+       <!-- 原始业务SQL 查询某个账户下的所有订单信息 -->
+       <select id="getUserOrderInfoList" resultType="java.util.Map">
+           SELECT t1.user_id,
+                  t1.user_name AS fullName,
+                  t1.org_name,
+                  t2.*
+           FROM user_info t1
+                    LEFT JOIN order_info t2 ON t1.org_id = t2.org_id
+               AND t1.user_id = t2.user_id
+           WHERE t2.account_id = '12345'
+             AND t2.mobile = '133'
+             AND t1.mobile = '133'
+           ORDER BY t2.order_time DESC 
+           LIMIT 1,10
+       </select>
+       
+       <!-- 框架自动填充分片键后等价于以下查询效果 -->
+       <select id="getUserOrderInfoList" resultType="java.util.Map">
+           SELECT
+               t1.user_id,
+               t1.user_name AS fullName,
+               t1.org_name,
+               t2.* 
+           FROM
+               user_info t1
+               LEFT JOIN order_info t2 ON t1.org_id = t2.org_id 
+               AND t1.user_id = t2.user_id 
+           WHERE
+               t2.account_id = '12345' 
+               AND t2.mobile = '133' 
+               AND t1.mobile = '133' 
+               AND t1.org_id = 'orgId:111 From:mobile'  <!-- 自动填充 -->
+               AND t2.org_id = 'orgId:111 From:mobile'  <!-- 自动填充 -->
+               AND t2.user_id = 'userid:111 From:accountId' <!-- 自动填充 -->
+           ORDER BY
+               t2.order_time DESC 
+           LIMIT 1,10
+       </select>
+       ```
+
+
+
 
 6. 备注：
 
@@ -197,9 +246,9 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
     - 分片键值对内容缓存：设置spring.shardingkeyaAutofill.cache，若开启后，目前支持本地缓存（不设置则为默认缓存方式）、redis（自动读取spring
       redis starter配置）、spring cache ，业务查询在同样条件下，首次执行查找器找到分片键值内容会进行缓存，之后则在缓存有效期内直接自动从缓存提取并设置到条件当中
     - 分片键值对内容缓存重置：若开启键值内容缓存后，如果在缓存有效期内，分片键值对关联关系发生变化（业务变更了），这时需要在关系变更后，及时清理键值对内容缓存，避免框架执行时拿取旧的关系，而影响查询结果；可以使用ShardingValueCleaner实现类辅助缓存清理，之后业务查询时会重新执行查找器重新进行新的键值对内容缓存构建
-    - 分片键自动填充核心处理类：目前对于mapper.xml层面，实现了是否有出现分片键的检查，自动填充分片键还未实现，主要在于连表相关join时条件解析和适配相对复杂，不过笔者有预留支持SPI方式的拓展，使用者可以通过继承AbstractShardingStrategyHandler来diy
+    - 分片键自动填充核心处理类：目前支持service交互、mapper等多表SQL场景交互，同时笔者有预留支持SPI方式的拓展，使用者可以通过继承AbstractShardingStrategyHandler来diy设计自定义的填充分片键策略。
 
-### 说明
+### 结语
 
 这是笔者在日常工作中，对落地分库分表框架(sharding-sphere)之后，发现上述直面场景是经常会遇到的，很多SQL都需要做这种冗余动作，为此写了自动填充分片键框架工具，由工具自动提炼并设置分片键，让开发专注于业务SQL。欢迎留言和star使用！
 

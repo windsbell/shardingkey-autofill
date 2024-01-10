@@ -111,7 +111,8 @@ public class ShardingValueCachedHandler implements ShardingValueCache, ShardingV
                             , shardingValueCacheKey, shardingValueStrategy);
                 }
                 // 唤醒阻塞等待的get方
-                lockMap.get(shardingValueCacheKey).notifyAll();
+                Object lock = lockMap.get(shardingValueCacheKey);
+                if (lock != null) lock.notifyAll();
             }
         } catch (Exception e) {
             throw new RuntimeException(e);

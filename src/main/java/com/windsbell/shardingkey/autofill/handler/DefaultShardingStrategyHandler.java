@@ -20,7 +20,7 @@ public class DefaultShardingStrategyHandler extends AbstractShardingStrategyHand
     @Override
     public void parse(Statement statement, Object parameterObject, List<TableShardingKeyStrategy> tableShardingKeyStrategyList) {
         ShardingStrategyHandlerFactory.getAllInstances()
-                .stream().filter(AbstractShardingStrategyHandler::getIsEffective) // 过滤出有效的处理器
+                .stream().filter(shardingStrategyHandler -> shardingStrategyHandler.getClass().getAnnotation(Deprecated.class) == null) // 过滤出有效的处理器
                 .forEach(shardingStrategyHandler -> shardingStrategyHandler.parse(statement, parameterObject, tableShardingKeyStrategyList));
     }
 

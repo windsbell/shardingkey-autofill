@@ -99,20 +99,21 @@ public class ShardingStrategyHandlerFactory {
                 TableShardingKeyStrategy tableShardingStrategy = new TableShardingKeyStrategy();
                 if (CollectionUtils.isNotEmpty(necessaryBusinessKeys)) {
                     tableShardingStrategy.setNecessaryBusinessKeys(necessaryBusinessKeys);
-                    String errorNotHasNecessaryBusinessKeys = String.format("condition must contain all necessary field:%s！", necessaryBusinessKeys);
+                    String errorNotHasNecessaryBusinessKeys = String.format("strategy for table: %s, condition must contain all necessary field:%s！", suitableTable, necessaryBusinessKeys);
                     tableShardingStrategy.setErrorNotHasNecessaryBusinessKeys(errorNotHasNecessaryBusinessKeys);
                 }
                 if (CollectionUtils.isNotEmpty(anyOneBusinessKeys)) {
                     tableShardingStrategy.setAnyOneBusinessKeys(anyOneBusinessKeys);
-                    String errorNotHasAnyOneBusinessKeys = String.format("condition should contain any one required field:%s！", anyOneBusinessKeys);
+                    String errorNotHasAnyOneBusinessKeys = String.format("strategy for table: %s, condition should contain any one required field:%s！", suitableTable, anyOneBusinessKeys);
                     tableShardingStrategy.setErrorNotHasAnyOneBusinessKeys(errorNotHasAnyOneBusinessKeys);
                 }
-                String errorNotHaseDatabaseShardKey = String.format("condition must contain database sharding key field:%s！", strategy.getDatabaseShardKey());
-                String errorNotHaseTableShardKey = String.format("condition must contain table sharding key field:%s！", strategy.getTableShardKey());
+                String errorNotHaseDatabaseShardKey = String.format("strategy for table: %s, condition must contain database sharding key field:%s！", suitableTable, strategy.getDatabaseShardKey());
+                String errorNotHaseTableShardKey = String.format("strategy for table: %s, condition must contain table sharding key field:%s！", suitableTable, strategy.getTableShardKey());
                 tableShardingStrategy.setTable(suitableTable.trim());
                 tableShardingStrategy.setTableShardKey(tableShardKey);
                 tableShardingStrategy.setDatabaseShardKey(databaseShardKey);
                 tableShardingStrategy.setShardingValueFinder(shardingValueFinder);
+                tableShardingStrategy.setFinderClassName(finderClassName);
                 tableShardingStrategy.setErrorNotHaseTableShardKey(errorNotHaseTableShardKey);
                 tableShardingStrategy.setErrorNotHaseDatabaseShardKey(errorNotHaseDatabaseShardKey);
                 TableShardingStrategyHelper.put(suitableTable, tableShardingStrategy);
