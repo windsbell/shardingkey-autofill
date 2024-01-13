@@ -2,6 +2,7 @@ package com.windsbell.shardingkey.autofill.jsqlparser.test;
 
 import com.windsbell.shardingkey.autofill.jsqlparser.CourseExplain;
 import com.windsbell.shardingkey.autofill.jsqlparser.ShardingKeyFillerAgent;
+import com.windsbell.shardingkey.autofill.jsqlparser.ShardingKeyHitFinder;
 import com.windsbell.shardingkey.autofill.jsqlparser.TableAliasSetter;
 import com.windsbell.shardingkey.autofill.utils.ResourceUtil;
 import net.sf.jsqlparser.JSQLParserException;
@@ -17,6 +18,7 @@ public class ShardingKeyTest {
 
     public static void main(String[] args) {
 
+
         Map<String, Map<String, String>> fillShardingKeyMap = new HashMap<>();
         Map<String, String> innerMap = new HashMap<>();
         innerMap.put("org_id", "o222");
@@ -30,19 +32,22 @@ public class ShardingKeyTest {
         filterSqlFile(null, sqlFileContents);
 
         sqlFileContents.forEach((fileName, sql) -> {
+            long start = System.currentTimeMillis();
+
             Statement statement;
             try {
                 statement = CCJSqlParserUtil.parse(sql);
             } catch (JSQLParserException e) {
                 throw new RuntimeException(e);
             }
-
             System.out.println("===============start================");
             System.out.printf("1.start parse File: %s \n%s\n", fileName, sql);
             TableAliasSetter tableAliasSetter = new TableAliasSetter(statement);
-            tableAliasSetter.setTableAlias();
+            tableAliasSetter.doSet();
+            ShardingKeyHitFinder shardingKeyHitFinder = new ShardingKeyHitFinder(statement, fillShardingKeyMap);
+            Map<String, Map<String, Boolean>> lastShardingKeyHitFlagMap = shardingKeyHitFinder.doFind();
             System.out.printf("2.set table alias sql:\n%s", statement);
-            CourseExplain courseExplain = new ShardingKeyFillerAgent(fillShardingKeyMap, statement).doFill();
+            CourseExplain courseExplain = new ShardingKeyFillerAgent(statement, fillShardingKeyMap, lastShardingKeyHitFlagMap).doFill(start);
             List<String> targetTables = courseExplain.getTargetTables();
             System.out.printf("3.get tables:%s\n", targetTables);
             System.out.printf("4.success parse File: %s  final sql:\n%s \n", fileName, courseExplain.getFinalSQL());

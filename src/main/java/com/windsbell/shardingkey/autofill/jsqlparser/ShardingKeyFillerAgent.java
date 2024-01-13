@@ -13,35 +13,32 @@ import java.util.Map;
  */
 public class ShardingKeyFillerAgent {
 
-    private final Long start;
+    private final CourseExplain courseExplain;  // 分片键填充过程说明
 
-    private final CourseExplain courseExplain;
+    private final ShardingKeyFiller shardingKeyFiller; // 分片键填充
 
-    private final ShardingKeyFiller shardingKeyFiller;
-
-    public ShardingKeyFillerAgent(Map<String, Map<String, String>> shardingKeyValueMap, Statement statement) {
-        this.start = System.currentTimeMillis();
+    public ShardingKeyFillerAgent(Statement statement, Map<String, Map<String, String>> shardingKeyValueMap, Map<String, Map<String, Boolean>> firstShardingKeyHitFlagMap) {
         this.courseExplain = new CourseExplain();
         courseExplain.setHasFilled(false);
         courseExplain.setFinalFilledShardingKeyMap(new LinkedHashMap<>());
         courseExplain.setInitialSQL(statement.toString());
-        this.shardingKeyFiller = new ShardingKeyFiller(shardingKeyValueMap, statement);
+        this.shardingKeyFiller = new ShardingKeyFiller(statement, shardingKeyValueMap, firstShardingKeyHitFlagMap);
     }
 
-    public CourseExplain doFill() {
+    public CourseExplain doFill(long start) {
         shardingKeyFiller.doFill();
-        combineExplain();
+        combineExplain(start);
         return courseExplain;
     }
 
-    private void combineExplain() {
+    private void combineExplain(long start) {
         courseExplain.setFinalSQL(shardingKeyFiller.getStatement());
         courseExplain.setTargetTables(new ArrayList<>(shardingKeyFiller.getTablesAliasMap().keySet()));
         Map<String, Map<String, String>> shardingKeyValueMap = shardingKeyFiller.getShardingKeyValueMap();
         courseExplain.setTargetShardingKeyValueMap(shardingKeyValueMap);
-        Map<String, Map<String, Boolean>> firstRoundShardingKeyHitFlagMap = shardingKeyFiller.getFirstRoundShardingKeyHitFlagMap();
+        Map<String, Map<String, Boolean>> firstShardingKeyHitFlagMap = shardingKeyFiller.getFirstShardingKeyHitFlagMap();
         Map<String, Map<String, Boolean>> shardingKeyHitFlagMap = shardingKeyFiller.getShardingKeyHitFlagMap();
-        firstRoundShardingKeyHitFlagMap.forEach((k, v) -> {
+        firstShardingKeyHitFlagMap.forEach((k, v) -> {
             Map<String, Boolean> shardingKeyHitFlagInnerMap = shardingKeyHitFlagMap.get(k);
             Map<String, String> shardingKeyValueInnerMap = shardingKeyValueMap.get(k);
             v.forEach((m, n) -> {

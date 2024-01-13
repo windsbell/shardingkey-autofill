@@ -18,6 +18,7 @@ import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.update.Update;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.Assert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,6 +166,18 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
         equalsTo.setLeftExpression(new Column(shardKey));
         equalsTo.setRightExpression(new StringValue(value));
         return equalsTo;
+    }
+
+    private void checkBusinessStrategies(Statement statement, TableShardingKeyStrategy tableShardingStrategy
+            , List<BusinessStrategy<?>> necessaryBusinessStrategies, List<BusinessStrategy<?>> anyOneBusinessStrategies) {
+        Assert.isTrue(!(CollectionUtils.isNotEmpty(tableShardingStrategy.getNecessaryBusinessKeys())
+                && CollectionUtils.isEmpty(necessaryBusinessStrategies)), tableShardingStrategy.getErrorNotHasNecessaryBusinessKeys());
+        if (CollectionUtils.isNotEmpty(tableShardingStrategy.getNecessaryBusinessKeys()) && CollectionUtils.isNotEmpty(necessaryBusinessStrategies)) {
+            boolean notHasNecessaryBusinessKey = necessaryBusinessStrategies.stream().anyMatch(businessStrategy -> businessStrategy.getValue() == null);
+            Assert.isTrue(!notHasNecessaryBusinessKey, "\n" + statement + "\n: " + tableShardingStrategy.getErrorNotHasNecessaryBusinessKeys());
+        }
+        Assert.isTrue(!(CollectionUtils.isNotEmpty(tableShardingStrategy.getAnyOneBusinessKeys())
+                && CollectionUtils.isEmpty(anyOneBusinessStrategies)), statement + "\n: " + tableShardingStrategy.getErrorNotHasAnyOneBusinessKeys());
     }
 
 

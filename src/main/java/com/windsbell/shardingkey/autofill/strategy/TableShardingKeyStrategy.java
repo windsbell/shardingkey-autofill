@@ -2,8 +2,10 @@ package com.windsbell.shardingkey.autofill.strategy;
 
 import com.windsbell.shardingkey.autofill.finder.ShardingValueFinder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.util.List;
+
 
 /**
  * 表分片键映射策略
@@ -11,6 +13,7 @@ import java.util.List;
  * @author windbell
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class TableShardingKeyStrategy extends ShardingKeyStrategy {
 
     private String table; // 表名
@@ -31,5 +34,4 @@ public class TableShardingKeyStrategy extends ShardingKeyStrategy {
 
 
 }
-
 

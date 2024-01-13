@@ -28,24 +28,27 @@ import java.util.stream.Collectors;
  */
 public class BusinessKeyStrategyHelper extends StatementParser {
 
-    private final Map<String, Map<String, BusinessStrategy<Object>>> matchNecessaryColumnMap = new LinkedHashMap<>();
+    private final Map<String, Map<String, BusinessStrategy<Object>>> matchNecessaryColumnMap = new LinkedHashMap<>(); // 匹配必填业务字段map
 
-    private final Map<String, Map<String, BusinessStrategy<Object>>> matchAnyOneColumnMap = new LinkedHashMap<>();
+    private final Map<String, Map<String, BusinessStrategy<Object>>> matchAnyOneColumnMap = new LinkedHashMap<>(); // 匹配任意业务字段map
 
-    private final List<?> parameterList;
+    private final List<?> parameterList; // 占位符内容值列表
 
     @Getter
-    private Map<String, TableShardingKeyStrategy> shardingKeyStrategyMap;
+    private Map<String, TableShardingKeyStrategy> shardingKeyStrategyMap; // 表分片键映射策略map
+
+    @Getter
+    private List<BusinessKeyStrategy> businessKeyStrategyList;
 
     public BusinessKeyStrategyHelper(Statement statement, List<TableShardingKeyStrategy> tableShardingKeyStrategyList, List<?> parameterList) {
         super(statement);
         this.parameterList = parameterList;
         init(tableShardingKeyStrategyList);
-        statement.accept(this);
     }
 
     private void init(List<TableShardingKeyStrategy> tableShardingKeyStrategyList) {
         this.shardingKeyStrategyMap = tableShardingKeyStrategyList.stream().collect(Collectors.toMap(TableShardingKeyStrategy::getTable, o -> o, (o1, o2) -> o1));
+        this.businessKeyStrategyList = new ArrayList<>(shardingKeyStrategyMap.size());
         for (TableShardingKeyStrategy tableShardingKeyStrategy : tableShardingKeyStrategyList) {
             setColumnMap(matchNecessaryColumnMap, tableShardingKeyStrategy, tableShardingKeyStrategy.getNecessaryBusinessKeys());
             setColumnMap(matchAnyOneColumnMap, tableShardingKeyStrategy, tableShardingKeyStrategy.getAnyOneBusinessKeys());
@@ -67,8 +70,8 @@ public class BusinessKeyStrategyHelper extends StatementParser {
         }
     }
 
-    public List<BusinessKeyStrategy> match() {
-        List<BusinessKeyStrategy> businessKeyStrategies = new ArrayList<>(shardingKeyStrategyMap.size());
+    public void doMatch() {
+        statement.accept(this);
         shardingKeyStrategyMap.forEach((k, v) -> {
             BusinessKeyStrategy businessKeyStrategy = new BusinessKeyStrategy();
             businessKeyStrategy.setTable(k);
@@ -81,9 +84,8 @@ public class BusinessKeyStrategyHelper extends StatementParser {
             if (anyOneMap != null) {
                 businessKeyStrategy.setNecessaryBusinessKeys(new ArrayList<>(anyOneMap.values()));
             }
-            businessKeyStrategies.add(businessKeyStrategy);
+            this.businessKeyStrategyList.add(businessKeyStrategy);
         });
-        return businessKeyStrategies;
     }
 
     @Override

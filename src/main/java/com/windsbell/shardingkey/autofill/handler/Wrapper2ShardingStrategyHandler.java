@@ -33,7 +33,7 @@ public class Wrapper2ShardingStrategyHandler extends AbstractShardingStrategyHan
             Map<String, Object> paramNameValuePairs = wrapper.getParamNameValuePairs();
             List<?> parameterList = getParameterList(paramNameValuePairs, PARAMETER_PREFIX);
             CourseExplain courseExplain = super.doFill(statement, tableShardingKeyStrategyList, parameterList);
-            if (courseExplain.getHasFilled()) log.info("[wrapper: {}]", courseExplain);
+            log.info("[wrapper: {}]", courseExplain);
         }
     }
 

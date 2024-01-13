@@ -38,14 +38,14 @@ public class TableAliasSetter extends StatementParser {
         round++;
     }
 
-    public synchronized void setTableAlias() {
+    public void doSet() {
         statement.accept(this);
     }
 
     /**
      * 补充表别名， 以t1，t2形式递增
      */
-    protected synchronized String getNextAlias() {
+    protected String getNextAlias() {
         if (counter < 1000) {
             counter++;
             String nextAlias = "t" + counter;

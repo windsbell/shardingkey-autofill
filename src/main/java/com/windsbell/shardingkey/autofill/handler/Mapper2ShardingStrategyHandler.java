@@ -18,9 +18,9 @@ import java.util.List;
  */
 public class Mapper2ShardingStrategyHandler extends AbstractShardingStrategyHandler implements ShardingStrategyHandler {
 
-    private static final String PARAMETER_PREFIX = "param";
-
     private static final CustomerLogger log = CustomerLoggerFactory.getLogger(Mapper2ShardingStrategyHandler.class);
+
+    private static final String PARAMETER_PREFIX = "param";
 
     /**
      * statement:预处理语句
@@ -34,7 +34,7 @@ public class Mapper2ShardingStrategyHandler extends AbstractShardingStrategyHand
             MapperMethod.ParamMap<?> paramMap = (MapperMethod.ParamMap<?>) parameterObject;
             List<?> parameterList = getParameterList(paramMap, PARAMETER_PREFIX);
             CourseExplain courseExplain = super.doFill(statement, tableShardingKeyStrategyList, parameterList);
-            if (courseExplain.getHasFilled()) log.info("[mapper: {}]", courseExplain);
+            log.info("[mapper: {}]", courseExplain);
         }
     }
 
