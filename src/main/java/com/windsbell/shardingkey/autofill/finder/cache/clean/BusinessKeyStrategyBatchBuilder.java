@@ -1,6 +1,7 @@
 package com.windsbell.shardingkey.autofill.finder.cache.clean;
 
 import com.windsbell.shardingkey.autofill.strategy.BusinessKeyStrategy;
+import com.windsbell.shardingkey.autofill.strategy.ShardingKeyStrategy;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +26,10 @@ public class BusinessKeyStrategyBatchBuilder extends BusinessKeyStrategyBuilder 
     /**
      * 一轮策略设置完成后的标记, 再次进入下一轮设置
      */
-    public BusinessKeyStrategyBatchBuilder one() {
+    public BusinessKeyStrategyBatchBuilder one(String databaseShardKey, String tableShardKey) {
+        ShardingKeyStrategy shardingKeyStrategy = new ShardingKeyStrategy();
+        shardingKeyStrategy.setDatabaseShardKey(databaseShardKey);
+        shardingKeyStrategy.setTableShardKey(tableShardKey);
         businessKeyStrategyList.add(businessKeyStrategy);
         init();
         return this;
