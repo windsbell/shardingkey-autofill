@@ -48,9 +48,6 @@ public class ShardingStrategyHandlerFactory {
 
     static AbstractShardingStrategyHandler getInstance() {
         AbstractShardingStrategyHandler shardingStrategyHandler = getFromServices();
-        if (shardingStrategyHandler == null) {
-            return ShardingStrategyHandlerFactory.getDefaultInstance();
-        }
         SHARDING_STRATEGY_HANDLER_INSTANCE_CACHE.putIfAbsent(shardingStrategyHandler.getClass().getName(), shardingStrategyHandler);
         return shardingStrategyHandler;
     }
@@ -61,7 +58,7 @@ public class ShardingStrategyHandlerFactory {
         if (iterator.hasNext()) {
             return iterator.next();
         }
-        return null;
+        return ShardingStrategyHandlerFactory.getDefaultInstance(); // 默认策略
     }
 
     private static void initInstances() {

@@ -3,6 +3,9 @@ package com.windsbell.shardingkey.autofill.finder.cache;
 
 import com.windsbell.shardingkey.autofill.strategy.ShardingValueStrategy;
 
+import java.util.Iterator;
+import java.util.ServiceLoader;
+
 /**
  * 定制缓存器
  *
@@ -28,10 +31,19 @@ public class CustomerCacheDecorator implements ShardingValueCache {
 
     public CustomerCacheDecorator(ShardingValueCache shardingValueCache, Long expire) {
         this.expire = expire * 1000;
-        asyncExpireListener = new DefaultAsyncExpireListener();
+        asyncExpireListener = getFromServices();
         cache = shardingValueCache;
         asyncExpireListener.setCache(cache);
         asyncExpireListener.startListening();
+    }
+
+    private AsyncExpireListener getFromServices() {
+        ServiceLoader<AsyncExpireListener> serviceLoader = ServiceLoader.load(AsyncExpireListener.class);
+        Iterator<AsyncExpireListener> iterator = serviceLoader.iterator();
+        if (iterator.hasNext()) {
+            return iterator.next();
+        }
+        return new DefaultAsyncExpireListener(); // 默认异步过期监听器
     }
 
     @Override
