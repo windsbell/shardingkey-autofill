@@ -8,6 +8,7 @@ import lombok.Getter;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.JdbcParameter;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
@@ -82,7 +83,7 @@ public class BusinessKeyStrategyHelper extends StatementParser {
             }
             Map<String, BusinessStrategy<Object>> anyOneMap = matchAnyOneColumnMap.get(k);
             if (anyOneMap != null) {
-                businessKeyStrategy.setNecessaryBusinessKeys(new ArrayList<>(anyOneMap.values()));
+                businessKeyStrategy.setAnyOneBusinessKeys(new ArrayList<>(anyOneMap.values()));
             }
             this.businessKeyStrategyList.add(businessKeyStrategy);
         });
@@ -118,6 +119,10 @@ public class BusinessKeyStrategyHelper extends StatementParser {
     }
 
     private void matchColumn(Expression expression, Map<String, BusinessStrategy<Object>> necessaryMap, Map<String, BusinessStrategy<Object>> anyOneMap) {
+        if (expression instanceof Parenthesis) {
+            Parenthesis parenthesis = (Parenthesis) expression;
+            this.matchColumn(parenthesis.getExpression(), necessaryMap, anyOneMap);
+        }
         if (expression instanceof BinaryExpression) {
             BinaryExpression binaryExpression = (BinaryExpression) expression;
             Expression leftExpression = binaryExpression.getLeftExpression();

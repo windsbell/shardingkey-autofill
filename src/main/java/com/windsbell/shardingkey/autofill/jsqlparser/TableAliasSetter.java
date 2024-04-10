@@ -3,6 +3,7 @@ package com.windsbell.shardingkey.autofill.jsqlparser;
 import net.sf.jsqlparser.expression.Alias;
 import net.sf.jsqlparser.expression.BinaryExpression;
 import net.sf.jsqlparser.expression.Expression;
+import net.sf.jsqlparser.expression.Parenthesis;
 import net.sf.jsqlparser.expression.operators.relational.InExpression;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -108,7 +109,10 @@ public class TableAliasSetter extends StatementParser {
     }
 
     private void matchWhere(Expression expression, Table table) {
-        if (expression instanceof BinaryExpression) {
+        if (expression instanceof Parenthesis) {
+            Parenthesis parenthesis = (Parenthesis) expression;
+            this.matchWhere(parenthesis.getExpression(), table);
+        } else if (expression instanceof BinaryExpression) {
             BinaryExpression binaryExpression = (BinaryExpression) expression;
             Expression leftExpression = binaryExpression.getLeftExpression();
             Expression rightExpression = binaryExpression.getRightExpression();
