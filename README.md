@@ -188,8 +188,8 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
         List<OrderInfo> orderInfoList = this.lambdaQuery()
                 .eq(OrderInfo::getAccountId, accountId)
                 .eq(OrderInfo::getOrderId, orderId)
-                .eq(OrderInfo::getUserId, userId)
-                .eq(OrderInfo::getOrgId, orgId)
+                .eq(OrderInfo::getUserId, userId) // 框架自动填充
+                .eq(OrderInfo::getOrgId, orgId)   // 框架自动填充
                 .list();
         ```
     
@@ -245,7 +245,7 @@ Shardingkey-Autofill 是一个针对**分库分表**的项目进行**分片键�
     - 执行过程日志开关：如果spring.shardingkeyaAutofill.logEnabled = true，在执行原始业务时，可以观察到框架对具体哪些SQL片段的拦截以及哪些分片键字段被自动填充的过程、说明等信息
     - 分片键值对内容缓存：设置spring.shardingkeyaAutofill.cache，若开启后，目前支持本地缓存（不设置则为默认缓存方式）、redis（自动读取spring
       redis starter配置）、spring cache ，业务查询在同样条件下，首次执行查找器找到分片键值内容会进行缓存，之后则在缓存有效期内直接自动从缓存提取并设置到条件当中
-    - 分片键值对内容缓存重置：若开启键值内容缓存后，如果在缓存有效期内，分片键值对关联关系发生变化（业务变更了），这时需要在关系变更后，及时清理键值对内容缓存，避免框架执行时拿取旧的关系，而影响查询结果；可以使用ShardingValueCleaner实现类辅助缓存清理，之后业务查询时会重新执行查找器重新进行新的键值对内容缓存构建
+    - 分片键值对内容缓存重置：若开启键值内容缓存后，如果在缓存有效期内，分片键值对关联关系发生变化（业务变更了），这时需要在关系变更后，及时清理键值对内容缓存，避免框架执行时拿取旧的关系，而影响查询结果；可以使用BusinessKeyStrategyBuilder构建填写业务字段值来实现类辅助缓存清理，之后业务查询时会重新执行查找器重新进行新的键值对内容缓存构建
     - 分片键自动填充核心处理类：目前支持service交互、mapper等多表SQL场景交互，同时笔者有预留支持SPI方式的拓展，使用者可以通过继承AbstractShardingStrategyHandler来diy设计更出色的填充分片键策略
 
 ### 结语
