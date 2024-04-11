@@ -137,6 +137,7 @@ public class ShardingKeyCooker {
             , QuadConsumer<Statement, String, ShardingKeyStrategy, ShardingValueStrategy> checkShardingValueStrategyConsumer) {
         for (BusinessKeyStrategy businessKeyStrategy : businessKeyStrategyList) {
             String table = businessKeyStrategy.getTable();
+            businessKeyStrategy.setStatement(this.statement);
             ShardingKeyStrategy shardingKeyStrategy = businessKeyStrategy.getShardingKeyStrategy();
             ShardingValueStrategy shardingKeyValueStrategy = findShardingKeyValueStrategyFunction.apply(businessKeyStrategy, shardingKeyStrategyMap.get(table));
             checkShardingValueStrategyConsumer.accept(statement, table, shardingKeyStrategy, shardingKeyValueStrategy);

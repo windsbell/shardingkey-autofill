@@ -19,7 +19,7 @@ public interface ShardingValueFinder {
      * 响应：ShardingValueStrategy [tableShardValue：分表建的值 databaseShardValue：分库键的值]
      */
     @Nullable
-    ShardingValueStrategy find(BusinessKeyStrategy businessKeyStrategy);
+    ShardingValueStrategy find(final BusinessKeyStrategy businessKeyStrategy);
 
 
 }
