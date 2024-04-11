@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.windsbell</groupId>
     <artifactId>shardingkey-autofill</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
     <name>${project.artifactId}</name>
     <description>shardingkey-autofill 是一个针对分库分表的项目进行分片键（分库、分表键字段）自动填充的增强框架</description>
     <url>https://github.com/windsbell/shardingkey-autofill</url>

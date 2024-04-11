@@ -6,6 +6,7 @@ import com.windsbell.shardingkey.autofill.handler.AbstractShardingStrategyHandle
 import com.windsbell.shardingkey.autofill.handler.ShardingStrategyHandler;
 import com.windsbell.shardingkey.autofill.properties.ShardingKeyAutoFillProperty;
 import com.windsbell.shardingkey.autofill.properties.TableShardingKeyProperty;
+import com.windsbell.shardingkey.autofill.strategy.ShardingKeyStrategy;
 import com.windsbell.shardingkey.autofill.strategy.TableShardingKeyStrategy;
 import com.windsbell.shardingkey.autofill.utils.PackageUtil;
 import lombok.extern.slf4j.Slf4j;
@@ -113,8 +114,14 @@ public class ShardingStrategyHandlerFactory {
                 tableShardingStrategy.setFinderClassName(finderClassName);
                 tableShardingStrategy.setErrorNotHaseTableShardKey(errorNotHaseTableShardKey);
                 tableShardingStrategy.setErrorNotHaseDatabaseShardKey(errorNotHaseDatabaseShardKey);
-                TableShardingStrategyHelper.put(suitableTable, tableShardingStrategy);
+                TableShardingStrategyHelper.putTableStrategy(suitableTable, tableShardingStrategy);
             }
+            ShardingKeyStrategy shardingKeyStrategy = new ShardingKeyStrategy();
+            shardingKeyStrategy.setDatabaseShardKey(databaseShardKey);
+            shardingKeyStrategy.setTableShardKey(tableShardKey);
+            shardingKeyStrategy.setFinderClassName(finderClassName);
+            TableShardingStrategyHelper.putNecessaryBusinessStrategy(shardingKeyStrategy, necessaryBusinessKeys);
+            TableShardingStrategyHelper.putAnyOneBusinessStrategy(shardingKeyStrategy, anyOneBusinessKeys);
         }
 
     }
