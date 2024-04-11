@@ -37,9 +37,9 @@ public class BusinessKeyStrategyBuilder {
     /**
      * 设置必要字段和值
      */
-    public BusinessKeyStrategyBuilder addNecessaryBusinessKey(String key, String value) {
+    public BusinessKeyStrategyBuilder addNecessaryBusinessKey(String key, Object value) {
         Assert.notEmpty(key, "input necessary business key should not be empty!");
-        Assert.notNull(value, "input necessary business value can not be empty!");
+        Assert.notNull(value, "input necessary business value can not be null!");
         List<ShardingKeyStrategy> shardingKeyStrategyList = TableShardingStrategyHelper.getNecessaryTableShardingKeyStrategyMap().get(key);
         Assert.notEmpty(shardingKeyStrategyList, "strategies configs of necessary business key not contain this key:" + key);
         BusinessStrategy<Object> businessStrategy = new BusinessStrategy<>();
@@ -55,7 +55,7 @@ public class BusinessKeyStrategyBuilder {
      */
     public BusinessKeyStrategyBuilder addAnyOneBusinessKey(String key, Object value) {
         Assert.notEmpty(key, "input any one business key should not be empty!");
-        Assert.notNull(value, "input any one business value should not be empty!");
+        Assert.notNull(value, "input any one business value should not be null!");
         List<ShardingKeyStrategy> shardingKeyStrategyList = TableShardingStrategyHelper.getAnyOneTableShardingKeyStrategyMap().get(key);
         Assert.notEmpty(shardingKeyStrategyList, "strategies configs of any one business key not contain this key:" + key);
         BusinessStrategy<Object> businessStrategy = new BusinessStrategy<>();
