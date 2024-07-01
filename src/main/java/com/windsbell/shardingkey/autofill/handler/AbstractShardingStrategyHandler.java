@@ -1,6 +1,7 @@
 package com.windsbell.shardingkey.autofill.handler;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.windsbell.shardingkey.autofill.finder.ShardingValueHandlerFactory;
 import com.windsbell.shardingkey.autofill.jsqlparser.CourseExplain;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
@@ -54,8 +55,8 @@ public abstract class AbstractShardingStrategyHandler extends ShardingValueHandl
         AbstractWrapper<?, ?, ?> wrapper = null;
         if (methodObj instanceof MapperMethod.ParamMap) {
             MapperMethod.ParamMap<?> paramMap = (MapperMethod.ParamMap<?>) methodObj;
-            if (paramMap.containsKey("ew")) {
-                Object obj = paramMap.get("ew");
+            if (paramMap.containsKey(Constants.WRAPPER)) {
+                Object obj = paramMap.get(Constants.WRAPPER);
                 if (obj instanceof AbstractWrapper) {
                     wrapper = (AbstractWrapper<?, ?, ?>) obj;
                 }

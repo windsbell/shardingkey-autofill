@@ -3,6 +3,7 @@ package com.windsbell.shardingkey.autofill.handler;
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
 import com.baomidou.mybatisplus.core.enums.SqlKeyword;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.baomidou.mybatisplus.core.toolkit.StringPool;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
@@ -72,7 +73,7 @@ public class WrapperShardingStrategyHandler extends AbstractShardingStrategyHand
             for (String businessKey : tableShardingStrategy) {
                 String businessKeyEqual = businessKey + " =";
                 if (sqlSegment.contains(businessKeyEqual)) {
-                    String pKey = sqlSegment.split(businessKey + " =")[1].split("paramNameValuePairs.")[1].split("}")[0];
+                    String pKey = sqlSegment.split(businessKey + " =")[1].split(Constants.WRAPPER_PARAM_MIDDLE)[1].split("}")[0];
                     Object valueObj = wrapper.getParamNameValuePairs().get(pKey);
                     if (valueObj != null && StringUtils.isNotBlank(valueObj.toString())) {
                         BusinessStrategy<String> businessStrategy = new BusinessStrategy<>();

@@ -1,6 +1,7 @@
 package com.windsbell.shardingkey.autofill.handler;
 
 import com.baomidou.mybatisplus.core.conditions.AbstractWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Constants;
 import com.windsbell.shardingkey.autofill.jsqlparser.CourseExplain;
 import com.windsbell.shardingkey.autofill.logger.CustomerLogger;
 import com.windsbell.shardingkey.autofill.logger.CustomerLoggerFactory;
@@ -19,8 +20,6 @@ public class Wrapper2ShardingStrategyHandler extends AbstractShardingStrategyHan
 
     private static final CustomerLogger log = CustomerLoggerFactory.getLogger(Wrapper2ShardingStrategyHandler.class);
 
-    private static final String PARAMETER_PREFIX = "MPGENVAL";
-
     /**
      * statement:预处理语句
      * parameterObject: 替换参数对象
@@ -31,7 +30,7 @@ public class Wrapper2ShardingStrategyHandler extends AbstractShardingStrategyHan
         AbstractWrapper<?, ?, ?> wrapper = super.tryAndGetWrapper(parameterObject);
         if (wrapper != null) {
             Map<String, Object> paramNameValuePairs = wrapper.getParamNameValuePairs();
-            List<?> parameterList = getParameterList(paramNameValuePairs, PARAMETER_PREFIX);
+            List<?> parameterList = getParameterList(paramNameValuePairs, Constants.WRAPPER_PARAM);
             CourseExplain courseExplain = super.doFill(statement, tableShardingKeyStrategyList, parameterList);
             log.info("[wrapper: {}]", courseExplain);
         }
