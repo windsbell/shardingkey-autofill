@@ -17,7 +17,7 @@ public class DefaultAsyncExpireListener extends AbstractAsyncExpireListener {
 
     private final static long INTERVAL_INSPECTION_TIME = 5; // 间隔检查时间（s）
 
-    private final static float INSPECTION_RATIO = 0.2f; // 抽查比例系数
+    private final static float INSPECTION_RATIO = 0.25f; // 抽查比例系数
 
     private final static String ASYNC_EXPIRE_LISTENER_NAME = "asyncExpireListener"; // 异步过期监听器名称
 
@@ -34,7 +34,7 @@ public class DefaultAsyncExpireListener extends AbstractAsyncExpireListener {
 
     @Override
     public boolean isExpire(ExpireKey expireKey) {
-        return System.currentTimeMillis() > expireMap.get(expireKey.getKey()).getExpire();
+        return System.currentTimeMillis() > expireKey.getExpire();
     }
 
     @Override
@@ -66,23 +66,24 @@ public class DefaultAsyncExpireListener extends AbstractAsyncExpireListener {
     public void startListening() {
         asyncExpireListener.scheduleAtFixedRate(() -> {
             if (!expireQueue.isEmpty()) {
-                // 检查过期队列一定比例数量的内容是否过期
+                // 检查过期队列一定比例数量的内容是否过期。对于过期的清理掉缓存，未过期的重新置入队列
                 long inspectionNum = expireQueue.size();
                 if (inspectionNum > INITIAL_CAPACITY) {
                     inspectionNum = new Random().nextInt((int) (inspectionNum * INSPECTION_RATIO));
                 }
                 for (int i = 0; i < inspectionNum; i++) {
                     ExpireKey expireKey = expireQueue.poll();
-                    if (expireKey != null) {
-                        if (this.isExpire(expireKey)) {
-                            this.removeExpire(expireKey);
-                            log.info("remove expire key:{}", expireKey.getKey());
-                        } else {
-                            // 重新放回队列
-                            expireQueue.offer(expireKey);
-                        }
+                    if (expireKey == null) break; // 队列不再有元素 结束循环
+                    if (this.isExpire(expireKey)) {
+                        this.removeExpire(expireKey);
+                        log.info("remove expire key:{}", expireKey.getKey());
+                    } else {
+                        // 未过期则重新放入队列，同时后面元素也是未过期，直接结束本轮检查
+                        expireQueue.offer(expireKey);
+                        break;
                     }
                 }
+
             }
         }, INTERVAL_INSPECTION_TIME, INTERVAL_INSPECTION_TIME, TimeUnit.SECONDS);
     }

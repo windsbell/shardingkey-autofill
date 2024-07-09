@@ -10,7 +10,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-class ExpireKey {
+public class ExpireKey {
 
     /**
      * 关键字key
